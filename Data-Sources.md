@@ -1,0 +1,3 @@
+- https://www.hhs.gov/about/agencies/dab/decisions/council-decisions/index.html#overpayment_claims
+  - The Hospital Inpatient Discharges (SPARCS) dataset from the New York State Department of Health provides de-identified hospital discharge records, including diagnosis-related groups and average charges and costs, which represent typical healthcare pricing patterns.
+  - It is used in this project as a reference source to compare billed amounts against typical costs and help identify potentially unusual or excessive charges during the discrepancy analysis stage.
