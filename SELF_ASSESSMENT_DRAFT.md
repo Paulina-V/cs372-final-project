@@ -11,7 +11,7 @@ This draft lists strong rubric items to consider claiming. Before submission, co
    Evidence: `src/pdf_extract.py` extracts text from PDFs, images, and text files before downstream processing.
 
 3. Applied feature engineering through local embeddings and structured billing fields (5 pts)  
-   Evidence: `src/rag.py` embeds CPT/HCPCS fee-schedule records with a deterministic local vectorizer; `src/code_extract.py` converts unstructured bill text into validated structured line items.
+   Evidence: `src/rag.py` embeds CPT/HCPCS fee-schedule records with a deterministic local vectorizer; `src/code_extract.py` converts unstructured bill text into validated structured line items; `src/features.py` creates numeric bill-risk features.
 
 4. Other substantial ML contribution: custom retrieval pipeline over medical billing data (proposed 5 pts)  
    Evidence: `scripts/download_cms_data.py` constructs a 9,926-row CMS-style benchmark; `src/rag.py` builds local vector embeddings, stores fee-schedule records in ChromaDB, and supports exact CPT/HCPCS lookup plus similarity search without external model downloads.
@@ -26,27 +26,30 @@ This draft lists strong rubric items to consider claiming. Before submission, co
    Evidence: `src/rag.py` builds and queries a ChromaDB index over Medicare fee-schedule data; `src/analysis.py` uses retrieved rates in anomaly checks.
 
 8. Built multi-stage ML pipeline connecting outputs of one model/component to inputs of another (7 pts)  
-   Evidence: `src/pipeline.py` chains extraction, structured LLM parsing, retrieval/rate comparison, anomaly checks, explanation generation, chat, and dispute generation.
+   Evidence: `src/pipeline.py` chains extraction, structured LLM parsing, retrieval/rate comparison, anomaly checks, trained risk classification, explanation generation, chat, and dispute generation.
 
 9. Deployed model as functional web application with user interface (10 pts)  
-   Evidence: `app.py` implements a Gradio app with upload, explanation, chat, and dispute-letter flows.
+   Evidence: `app.py` implements a Gradio app with upload, ZIP input, risk scoring, explanation, chat, and dispute-letter flows.
 
 10. Measured and reported inference time, throughput, or computational efficiency (3 pts)  
     Evidence: `eval/evaluate_rules.py` reports production-path deterministic-check latency in `eval/results.json`.
 
 11. Used at least three distinct and appropriate evaluation metrics for the task (3 pts)  
-    Evidence: `eval/evaluate_rules.py` reports precision, recall, and F1.
+    Evidence: `eval/evaluate_rules.py` reports precision, recall, and F1; `eval/risk_model_results.json` reports accuracy, macro F1, weighted F1, classification reports, and confusion matrices.
 
 12. Conducted both qualitative and quantitative evaluation with thoughtful discussion (5 pts)  
-    Evidence: `eval/evaluate_rules.py`, `eval/results.json`, index parity checks, ten synthetic evaluation cases, and the README evaluation/limitations sections.
+    Evidence: `eval/evaluate_rules.py`, `eval/results.json`, `eval/risk_model_results.json`, index parity checks, ten synthetic rule-evaluation cases, 1,800 synthetic risk-model examples, baseline comparison, and the README evaluation/limitations sections.
 
-13. Documented a design decision where you chose between ML approaches based on technical tradeoffs (3 pts)  
-    Evidence: README/SETUP discussion of API model use, local retrieval, deterministic checks, and avoiding risky fine-tuning under project constraints.
+13. Created baseline model for comparison (3 pts)  
+    Evidence: `scripts/train_risk_model.py` compares a majority-class baseline against logistic regression and random forest classifiers in `eval/risk_model_results.json`.
 
-14. In `ATTRIBUTION.md`, provided a substantive account of how AI development tools were used (3 pts)  
+14. Compared multiple model architectures or approaches quantitatively with controlled experimental setup (7 pts)  
+    Evidence: `scripts/train_risk_model.py` evaluates majority baseline, logistic regression, and random forest on the same train/test split.
+
+15. In `ATTRIBUTION.md`, provided a substantive account of how AI development tools were used (3 pts)  
     Evidence: `ATTRIBUTION.md`.
 
-15. Completed project individually without a partner (10 pts)  
+Optional if you need to swap items: Completed project individually without a partner (10 pts)  
     Evidence: README Individual Contributions section, if this was submitted as a solo project.
 
 ## Following Directions
@@ -59,7 +62,7 @@ This draft lists strong rubric items to consider claiming. Before submission, co
 
 ## Cohesion And Motivation
 
-The project has a single goal: help patients understand and dispute medical bills. The components work together toward that goal: document extraction produces bill text, the LLM structures and validates it, retrieval supplies Medicare benchmark rates, deterministic checks flag possible billing issues, and generation produces explanations, chat responses, and dispute letters.
+The project has a single goal: help patients understand and dispute medical bills. The components work together toward that goal: document extraction produces bill text, the LLM structures and validates it, retrieval supplies Medicare benchmark rates, deterministic checks flag possible billing issues, a trained classifier estimates bill risk, and generation produces explanations, chat responses, and dispute letters.
 
 ## Remaining Items Before Submission
 

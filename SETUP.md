@@ -83,13 +83,17 @@ data/sample_bill.txt
 
 ```bash
 python eval/evaluate_rules.py
+python eval/evaluate_risk_model.py
 ```
 
 The script rebuilds the local index, evaluates synthetic bills through the production deterministic analysis path, checks sampled index lookups against the CSV, and writes updated metrics to:
 
 ```text
 eval/results.json
+eval/risk_model_results.json
 ```
+
+`evaluate_risk_model.py` trains and compares a majority baseline, logistic regression model, and random forest bill-risk classifier, then writes `models/risk_model.joblib`.
 
 ## Troubleshooting
 

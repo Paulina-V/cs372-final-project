@@ -14,6 +14,7 @@ Paulina Vargas.
 - Gradio for the web application interface.
 - OpenAI Python SDK for Duke GPT / OpenAI-compatible language model calls.
 - ChromaDB plus a deterministic local embedding function for retrieval over fee-schedule records.
+- scikit-learn and joblib for the trained bill-risk classifier and model persistence.
 - pypdf, Pillow, pytesseract, and pdf2image for document extraction and OCR support.
 - pandas and numpy for data handling.
 - python-dotenv for local environment configuration.
@@ -28,6 +29,7 @@ AI coding assistance was used to accelerate implementation, debugging, and docum
 - Creating and refining the deterministic evaluation harness in `eval/evaluate_rules.py`.
 - Hardening LLM extraction with schema normalization, fallback metadata, and clearer prompts.
 - Expanding the CMS-style fee-schedule conversion script and documenting data limitations.
+- Adding the weakly supervised synthetic-data generator, feature engineering, trained risk classifier, and model evaluation scripts.
 - Drafting documentation files including `README.md`, `SETUP.md`, and this attribution document.
 
 Human judgment was used to choose the project goal, decide which rubric items to target, validate the design, review generated code, and keep the implementation aligned with the medical billing assistant use case.
@@ -38,10 +40,14 @@ Human judgment was used to choose the project goal, decide which rubric items to
 - `src/code_extract.py`
 - `src/pipeline.py`
 - `src/analysis.py`
+- `src/features.py`
+- `src/risk_model.py`
 - `src/pdf_extract.py`
 - `app.py`
 - `eval/evaluate_rules.py`
+- `eval/evaluate_risk_model.py`
 - `scripts/download_cms_data.py`
+- `scripts/train_risk_model.py`
 - `README.md`
 - `SETUP.md`
 - `ATTRIBUTION.md`
