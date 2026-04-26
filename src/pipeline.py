@@ -7,6 +7,7 @@ from src.pdf_extract import extract_text
 from src.code_extract import extract_codes
 from src.analysis import run_all_checks
 from src.explain import generate_explanation, format_analysis_for_llm
+from src.llm import user_facing_model_error
 from src.risk_model import predict_bill_risk
 
 
@@ -72,9 +73,10 @@ def analyze_bill(file_path: str, zip_code: str | None = None) -> dict:
     try:
         explanation = generate_explanation(analysis)
     except Exception as exc:
+        model_error = user_facing_model_error(exc)
         explanation = (
             "The bill was analyzed, but the explanation model could not be reached.\n\n"
-            f"Model error: {exc}\n\n"
+            f"Model error: {model_error}\n\n"
             "Here is the structured analysis:\n\n"
             f"{format_analysis_for_llm(analysis)}"
         )

@@ -26,3 +26,15 @@ def chat_completion(messages: list[dict], max_tokens: int = 2000, temperature: f
         temperature=temperature,
     )
     return response.choices[0].message.content.strip()
+
+
+def user_facing_model_error(exc: Exception) -> str:
+    """Return a concise model error without exposing raw API payload details."""
+    message = str(exc).lower()
+    if "incorrect api key" in message or "invalid_api_key" in message or "401" in message:
+        return "LLM API key is invalid or still set to the placeholder value. Update `.env` and restart the app."
+    if "openai_api_key is not set" in message or "api_key" in message and "not set" in message:
+        return "OPENAI_API_KEY is not set. Add your real key to `.env` and restart the app."
+    if "base_url" in message or "connection" in message:
+        return "Could not reach the configured LLM endpoint. Check OPENAI_BASE_URL, network access, and model settings."
+    return f"{type(exc).__name__}: {exc}"

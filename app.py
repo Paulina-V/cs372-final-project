@@ -9,6 +9,7 @@ import gradio as gr
 from src.pipeline import analyze_bill
 from src.explain import chat
 from src.dispute import generate_dispute_letter
+from src.llm import user_facing_model_error
 from src.risk_model import format_risk_summary
 
 
@@ -27,9 +28,9 @@ def process_bill(file, zip_code):
 
     explanation = _format_analysis_output(result)
 
-    # Build initial chat history
+    # Build initial chat history in Gradio's messages format.
     history = [
-        (None, explanation)
+        {"role": "assistant", "content": explanation}
     ]
 
     return explanation, history, result
@@ -37,27 +38,32 @@ def process_bill(file, zip_code):
 
 def respond(message, history, analysis):
     """Handle follow-up questions in the chat."""
+    history = history or []
     if not message or not message.strip():
         return history
 
     if not analysis:
-        return history + [(message, "Please upload a bill first using the upload tab.")]
+        return history + [
+            {"role": "user", "content": message},
+            {"role": "assistant", "content": "Please upload a bill first using the upload tab."},
+        ]
 
-    # Convert Gradio tuple history to API format
+    # Keep only role/content messages for the chat completion API.
     api_messages = []
-    for user_msg, assistant_msg in history:
-        if user_msg:
-            api_messages.append({"role": "user", "content": user_msg})
-        if assistant_msg:
-            api_messages.append({"role": "assistant", "content": assistant_msg})
+    for msg in history:
+        if isinstance(msg, dict) and msg.get("role") in {"user", "assistant"}:
+            api_messages.append({"role": msg["role"], "content": msg.get("content", "")})
     api_messages.append({"role": "user", "content": message})
 
     try:
         response = chat(api_messages, analysis)
     except Exception as exc:
-        response = f"I could not reach the chat model right now. Error: {exc}"
+        response = f"I could not reach the chat model right now. Error: {user_facing_model_error(exc)}"
 
-    history = history + [(message, response)]
+    history = history + [
+        {"role": "user", "content": message},
+        {"role": "assistant", "content": response},
+    ]
 
     return history
 
@@ -81,7 +87,7 @@ def generate_dispute(name, address, account_id, dispute_all, analysis):
     try:
         letter = generate_dispute_letter(analysis, patient_info)
     except Exception as exc:
-        return f"I could not generate the dispute letter because the model call failed: {exc}"
+        return f"I could not generate the dispute letter because the model call failed: {user_facing_model_error(exc)}"
 
     return letter
 
@@ -134,7 +140,7 @@ def build_app():
                     with gr.Column(scale=1):
                         file_input = gr.File(
                             label="Upload Medical Bill",
-                            file_types=[".pdf", ".png", ".jpg", ".jpeg", ".txt"],
+                            file_types=[".pdf", ".png", ".jpg", ".jpeg", ".webp", ".tiff", ".bmp", ".txt"],
                         )
                         zip_input = gr.Textbox(
                             label="Patient ZIP Code (optional)",

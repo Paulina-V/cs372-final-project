@@ -5,7 +5,7 @@ Returns structured JSON with billing details.
 
 import json
 import re
-from src.llm import chat_completion
+from src.llm import chat_completion, user_facing_model_error
 
 EXTRACTION_PROMPT = """You are a careful medical billing extraction system. Extract only information that is explicitly present in the bill text.
 
@@ -53,7 +53,7 @@ def extract_codes(bill_text: str) -> dict:
         )
     except Exception as exc:
         fallback = extract_codes_with_regex(bill_text)
-        fallback["warning"] = f"LLM extraction failed; used regex fallback instead: {exc}"
+        fallback["warning"] = f"LLM extraction failed; used regex fallback instead: {user_facing_model_error(exc)}"
         return fallback
 
     try:
@@ -65,6 +65,12 @@ def extract_codes(bill_text: str) -> dict:
         return fallback
 
     normalized = normalize_bill_data(parsed)
+    if not normalized.get("line_items"):
+        fallback = extract_codes_with_regex(bill_text)
+        fallback["warning"] = "LLM extraction returned no line items; used regex fallback instead."
+        fallback["raw_response"] = raw
+        return fallback
+
     normalized["extraction_method"] = "llm"
     return normalized
 
@@ -166,12 +172,14 @@ def _parse_amount(value) -> float | None:
 def extract_codes_with_regex(bill_text: str) -> dict:
     """Best-effort parser for clean text bills used when the LLM is unavailable."""
     patient_match = re.search(r"Patient:\s*(.+)", bill_text, re.IGNORECASE)
+    client_match = re.search(r"Client\s*\n(.+)", bill_text, re.IGNORECASE)
     provider_match = re.search(r"^(.+?HOSPITAL|.+?CLINIC|.+?MEDICAL CENTER)", bill_text, re.IGNORECASE | re.MULTILINE)
+    superbill_provider_match = re.search(r"Provider\s*\n(.+)", bill_text, re.IGNORECASE)
     date_match = re.search(r"Date of Service:\s*(.+)", bill_text, re.IGNORECASE)
-    total_match = re.search(r"(?:SUBTOTAL|TOTAL|PATIENT RESPONSIBILITY):\s*\$?([\d,]+\.\d{2})", bill_text, re.IGNORECASE)
+    total_match = re.search(r"(?:SUBTOTAL|TOTAL FEES|TOTAL|PATIENT RESPONSIBILITY):?\s*\$?([\d,]+(?:\.\d{2})?)", bill_text, re.IGNORECASE)
 
     line_items = []
-    item_pattern = re.compile(r"^\s*(?P<description>.+?)\s+(?P<cpt_code>\d{5})\s+\$?(?P<amount>[\d,]+\.\d{2})\s*$")
+    item_pattern = re.compile(r"^\s*(?P<description>.+?)\s+(?P<cpt_code>[A-Z]?\d{4,5}[A-Z]?)\s+\$?(?P<amount>[\d,]+(?:\.\d{2})?)\s*$")
     for line in bill_text.splitlines():
         match = item_pattern.match(line)
         if not match:
@@ -185,10 +193,62 @@ def extract_codes_with_regex(bill_text: str) -> dict:
             "date_of_service": date_match.group(1).strip() if date_match else None,
         })
 
+    line_items.extend(_parse_superbill_rows(bill_text))
+
     return {
-        "patient_name": patient_match.group(1).strip() if patient_match else None,
-        "provider_name": provider_match.group(1).strip() if provider_match else None,
+        "patient_name": _first_match_text(patient_match, client_match),
+        "provider_name": _first_match_text(provider_match, superbill_provider_match),
         "total_billed": float(total_match.group(1).replace(",", "")) if total_match else None,
         "line_items": line_items,
         "extraction_method": "regex_fallback",
     }
+
+
+def _parse_superbill_rows(bill_text: str) -> list[dict]:
+    """Parse superbill rows where CPT, modifier, and fee appear on separate lines."""
+    lines = [line.strip() for line in bill_text.splitlines() if line.strip()]
+    items = []
+    row_start = re.compile(r"^(?P<date>\d{2}/\d{2}/\d{4})\s+(?P<pos>\d{2})\s+(?P<cpt_code>\d{5})(?:\s+-)?$")
+    detail = re.compile(
+        r"^(?P<dx>(?:\d+\s*,\s*)*\d+)\s+"
+        r"(?P<description>.+?)\s+"
+        r"(?P<units>\d+)\s+"
+        r"\$(?P<fee>[\d,]+(?:\.\d{2})?)"
+        r"(?:\s+\$(?P<paid>[\d,]+(?:\.\d{2})?))?\s*$"
+    )
+
+    index = 0
+    while index < len(lines):
+        start = row_start.match(lines[index])
+        if not start:
+            index += 1
+            continue
+
+        detail_line = None
+        for lookahead in range(index + 1, min(index + 4, len(lines))):
+            if detail.match(lines[lookahead]):
+                detail_line = lines[lookahead]
+                break
+
+        if detail_line:
+            detail_match = detail.match(detail_line)
+            items.append({
+                "cpt_code": start.group("cpt_code"),
+                "icd_codes": [],
+                "description": detail_match.group("description").strip(),
+                "billed_amount": float(detail_match.group("fee").replace(",", "")),
+                "date_of_service": start.group("date"),
+            })
+            index = lookahead + 1
+        else:
+            index += 1
+
+    return items
+
+
+def _first_match_text(*matches) -> str | None:
+    """Return the first non-empty regex group from a list of optional matches."""
+    for match in matches:
+        if match:
+            return match.group(1).strip()
+    return None

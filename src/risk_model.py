@@ -55,7 +55,7 @@ def format_risk_summary(risk: dict) -> str:
 
     explanations = {
         "LOW_RISK": "The bill looks broadly consistent with the benchmark signals checked by the model.",
-        "MEDIUM_RISK": "The bill has one or more review signals, so it is worth checking the flagged line items.",
+        "MEDIUM_RISK": "The model sees moderate review signals in the bill-level features, so it is worth checking the line items and benchmark comparisons.",
         "HIGH_RISK": "The bill has strong review signals, so requesting an itemized review or dispute may be worthwhile.",
     }
 

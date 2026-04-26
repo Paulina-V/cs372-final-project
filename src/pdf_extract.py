@@ -59,7 +59,7 @@ def extract_text(file_path: str) -> str:
         return extract_text_from_pdf(file_path)
     elif ext == ".txt":
         return extract_text_from_txt(file_path)
-    elif ext in [".png", ".jpg", ".jpeg", ".tiff", ".bmp"]:
+    elif ext in [".png", ".jpg", ".jpeg", ".webp", ".tiff", ".bmp"]:
         return extract_text_from_image(file_path)
     else:
         raise ValueError(f"Unsupported file type: {ext}")
