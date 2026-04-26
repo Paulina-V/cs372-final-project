@@ -1,0 +1,58 @@
+code,description,fee
+99201,Office visit - new patient (brief),45.00
+99202,Office visit - new patient (low complexity),76.00
+99203,Office visit - new patient (moderate complexity),110.00
+99204,Office visit - new patient (moderate-high complexity),167.00
+99205,Office visit - new patient (high complexity),211.00
+99211,Office visit - established patient (minimal),23.00
+99212,Office visit - established patient (straightforward),45.00
+99213,Office visit - established patient (low complexity),74.00
+99214,Office visit - established patient (moderate complexity),109.00
+99215,Office visit - established patient (high complexity),148.00
+99281,Emergency department visit (self-limited),52.00
+99282,Emergency department visit (low-moderate severity),78.00
+99283,Emergency department visit (moderate severity),142.00
+99284,Emergency department visit (high severity),230.00
+99285,Emergency department visit (immediate threat),358.00
+99291,Critical care - first 30-74 minutes,274.00
+99292,Critical care - each additional 30 minutes,120.00
+71046,Chest X-ray - 2 views,26.00
+71048,Chest X-ray - 4+ views,30.00
+73030,Shoulder X-ray - 2+ views,25.00
+73110,Wrist X-ray - 3+ views,27.00
+73610,Ankle X-ray - 3+ views,25.00
+80048,Basic metabolic panel (blood test),11.00
+80053,Comprehensive metabolic panel,14.00
+85025,Complete blood count (CBC) with differential,8.00
+85027,Complete blood count (CBC) automated,7.00
+36415,Venipuncture (blood draw),3.00
+81001,Urinalysis - manual,4.00
+81003,Urinalysis - automated,3.00
+87880,Strep test - rapid,17.00
+87804,Influenza virus test,17.00
+87635,COVID-19 PCR test,51.00
+96372,Injection - therapeutic/diagnostic (subcutaneous/intramuscular),25.00
+96374,IV push - single drug,53.00
+96375,IV push - each additional drug,28.00
+96360,IV infusion - hydration (first hour),64.00
+96361,IV infusion - hydration (each additional hour),31.00
+90471,Immunization administration (1st vaccine),17.00
+90472,Immunization administration (each additional),11.00
+10060,Incision and drainage of abscess (simple),113.00
+10061,Incision and drainage of abscess (complicated),208.00
+12001,Simple wound repair - 2.5 cm or less,140.00
+12002,Simple wound repair - 2.6-7.5 cm,170.00
+29125,Splint - short arm,56.00
+29515,Splint - short leg,68.00
+70553,MRI brain without and with contrast,285.00
+72148,MRI lumbar spine without contrast,213.00
+74177,CT abdomen and pelvis with contrast,218.00
+93000,Electrocardiogram (ECG/EKG) - 12 lead,17.00
+93005,ECG tracing only,8.00
+93010,ECG interpretation and report only,10.00
+94640,Nebulizer treatment,14.00
+94760,Pulse oximetry,4.00
+99381,Preventive visit - new patient (infant),109.00
+99391,Preventive visit - established patient (infant),89.00
+99395,Preventive visit - established patient (18-39),118.00
+99396,Preventive visit - established patient (40-64),128.00

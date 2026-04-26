@@ -1,0 +1,72 @@
+{
+  "num_cases": 5,
+  "num_passed": 5,
+  "latency_seconds_total": 0.0002,
+  "latency_ms_per_case": 0.05,
+  "metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0
+  },
+  "cases": [
+    {
+      "name": "clean_office_visit",
+      "num_line_items": 2,
+      "expected_flags": [],
+      "predicted_flags": [],
+      "passed": true
+    },
+    {
+      "name": "overcharged_er_visit",
+      "num_line_items": 2,
+      "expected_flags": [
+        "OVERCHARGE",
+        "POTENTIAL_UPCODING"
+      ],
+      "predicted_flags": [
+        "OVERCHARGE",
+        "POTENTIAL_UPCODING"
+      ],
+      "passed": true
+    },
+    {
+      "name": "duplicate_charge",
+      "num_line_items": 2,
+      "expected_flags": [
+        "DUPLICATE"
+      ],
+      "predicted_flags": [
+        "DUPLICATE"
+      ],
+      "passed": true
+    },
+    {
+      "name": "upcoded_office_visit",
+      "num_line_items": 1,
+      "expected_flags": [
+        "OVERCHARGE",
+        "POTENTIAL_UPCODING"
+      ],
+      "predicted_flags": [
+        "OVERCHARGE",
+        "POTENTIAL_UPCODING"
+      ],
+      "passed": true
+    },
+    {
+      "name": "mixed_multiple_flags",
+      "num_line_items": 3,
+      "expected_flags": [
+        "DUPLICATE",
+        "OVERCHARGE",
+        "POTENTIAL_UPCODING"
+      ],
+      "predicted_flags": [
+        "DUPLICATE",
+        "OVERCHARGE",
+        "POTENTIAL_UPCODING"
+      ],
+      "passed": true
+    }
+  ]
+}

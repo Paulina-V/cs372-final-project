@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+chroma_db/
+data/*.csv
+!data/cms_fee_schedule.csv
+data/*.xlsx
+*.log
+.DS_Store
+final-project-class-instructions.md
+plan (2).md
+PROJECT_PLAN_24H.md
