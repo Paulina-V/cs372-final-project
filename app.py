@@ -9,15 +9,16 @@ import gradio as gr
 from src.pipeline import analyze_bill
 from src.explain import chat
 from src.dispute import generate_dispute_letter
+from src.risk_model import format_risk_summary
 
 
-def process_bill(file):
+def process_bill(file, zip_code):
     """Handle bill upload and run the full pipeline."""
     if file is None:
         return "Please upload a medical bill (PDF, image, or text file).", [], {}
 
     try:
-        result = analyze_bill(file.name)
+        result = analyze_bill(file.name, zip_code=zip_code)
     except Exception as exc:
         return f"Unexpected error while analyzing bill: {exc}", [], {}
 
@@ -102,6 +103,12 @@ def _format_analysis_output(result: dict) -> str:
 
     if result.get("extraction_warning"):
         status_lines.append(f"- Extraction warning: {result['extraction_warning']}")
+    if result.get("zip_code"):
+        status_lines.append(f"- ZIP code context: `{result['zip_code']}`")
+    if result.get("risk_model"):
+        status_lines.append(f"- {format_risk_summary(result['risk_model'])}")
+    if result.get("risk_model_error"):
+        status_lines.append(f"- Risk model warning: {result['risk_model_error']}")
 
     return "\n".join(status_lines) + "\n\n---\n\n" + explanation
 
@@ -129,6 +136,10 @@ def build_app():
                             label="Upload Medical Bill",
                             file_types=[".pdf", ".png", ".jpg", ".jpeg", ".txt"],
                         )
+                        zip_input = gr.Textbox(
+                            label="Patient ZIP Code (optional)",
+                            placeholder="e.g., 27708",
+                        )
                         analyze_btn = gr.Button("Analyze Bill", variant="primary")
 
                     with gr.Column(scale=2):
@@ -142,7 +153,7 @@ def build_app():
 
                 analyze_btn.click(
                     process_bill,
-                    inputs=[file_input],
+                    inputs=[file_input, zip_input],
                     outputs=[explanation_output, chatbot, analysis_state],
                 )
                 msg_input.submit(
@@ -182,10 +193,12 @@ def build_app():
                     **How it works:**
                     1. Upload a PDF or image of your medical bill
                     2. Our system extracts the billing codes (CPT/HCPCS) and charges
-                    3. Each charge is compared against Medicare reimbursement rates
-                    4. Potential issues (overcharges, duplicates, upcoding) are flagged
-                    5. You get a plain-English explanation and can ask follow-up questions
-                    6. If issues are found, you can generate a dispute letter
+                    3. ZIP code context is converted into a coarse regional feature for the trained risk model
+                    4. Each charge is compared against Medicare reimbursement rates
+                    5. Potential issues (overcharges, duplicates, high-acuity review signals) are flagged
+                    6. A trained classifier predicts whether the bill is low, medium, or high risk
+                    7. You get a plain-English explanation and can ask follow-up questions
+                    8. If issues are found, you can generate a dispute letter
 
                     **Data sources:**
                     - CMS Medicare Physician Fee Schedule (public data from cms.gov)

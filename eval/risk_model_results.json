@@ -1,0 +1,292 @@
+{
+  "dataset": {
+    "num_samples": 1800,
+    "num_train": 1350,
+    "num_test": 450,
+    "feature_names": [
+      "num_line_items",
+      "total_billed",
+      "total_benchmark",
+      "bill_to_benchmark_ratio",
+      "max_line_ratio",
+      "mean_line_ratio",
+      "num_overcharge_flags",
+      "num_duplicate_flags",
+      "num_high_acuity_flags",
+      "num_missing_rate_flags",
+      "num_unmatched_codes",
+      "fraction_unmatched_codes",
+      "lab_code_count",
+      "imaging_code_count",
+      "anesthesia_code_count",
+      "emergency_code_count",
+      "zip_region_multiplier"
+    ],
+    "label_counts": {
+      "LOW_RISK": 621,
+      "MEDIUM_RISK": 559,
+      "HIGH_RISK": 620
+    }
+  },
+  "best_model": "random_forest",
+  "model_path": "models/risk_model.joblib",
+  "models": {
+    "majority_baseline": {
+      "accuracy": 0.344,
+      "macro_f1": 0.171,
+      "weighted_f1": 0.176,
+      "classification_report": {
+        "LOW_RISK": {
+          "precision": 0.34444444444444444,
+          "recall": 1.0,
+          "f1-score": 0.512396694214876,
+          "support": 155.0
+        },
+        "MEDIUM_RISK": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 140.0
+        },
+        "HIGH_RISK": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 155.0
+        },
+        "accuracy": 0.34444444444444444,
+        "macro avg": {
+          "precision": 0.11481481481481481,
+          "recall": 0.3333333333333333,
+          "f1-score": 0.17079889807162532,
+          "support": 450.0
+        },
+        "weighted avg": {
+          "precision": 0.11864197530864197,
+          "recall": 0.34444444444444444,
+          "f1-score": 0.17649219467401284,
+          "support": 450.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          155,
+          0,
+          0
+        ],
+        [
+          140,
+          0,
+          0
+        ],
+        [
+          155,
+          0,
+          0
+        ]
+      ]
+    },
+    "logistic_regression": {
+      "accuracy": 0.991,
+      "macro_f1": 0.991,
+      "weighted_f1": 0.991,
+      "classification_report": {
+        "LOW_RISK": {
+          "precision": 1.0,
+          "recall": 0.9806451612903225,
+          "f1-score": 0.990228013029316,
+          "support": 155.0
+        },
+        "MEDIUM_RISK": {
+          "precision": 0.9722222222222222,
+          "recall": 1.0,
+          "f1-score": 0.9859154929577465,
+          "support": 140.0
+        },
+        "HIGH_RISK": {
+          "precision": 1.0,
+          "recall": 0.9935483870967742,
+          "f1-score": 0.9967637540453075,
+          "support": 155.0
+        },
+        "accuracy": 0.9911111111111112,
+        "macro avg": {
+          "precision": 0.9907407407407408,
+          "recall": 0.9913978494623655,
+          "f1-score": 0.9909690866774566,
+          "support": 450.0
+        },
+        "weighted avg": {
+          "precision": 0.9913580246913579,
+          "recall": 0.9911111111111112,
+          "f1-score": 0.9911375398014469,
+          "support": 450.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          152,
+          3,
+          0
+        ],
+        [
+          0,
+          140,
+          0
+        ],
+        [
+          0,
+          1,
+          154
+        ]
+      ]
+    },
+    "random_forest": {
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "weighted_f1": 1.0,
+      "classification_report": {
+        "LOW_RISK": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 155.0
+        },
+        "MEDIUM_RISK": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 140.0
+        },
+        "HIGH_RISK": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 155.0
+        },
+        "accuracy": 1.0,
+        "macro avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 450.0
+        },
+        "weighted avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 450.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          155,
+          0,
+          0
+        ],
+        [
+          0,
+          140,
+          0
+        ],
+        [
+          0,
+          0,
+          155
+        ]
+      ]
+    }
+  },
+  "example_synthetic_cases": [
+    {
+      "scenario": "moderate_overcharge",
+      "zip_code": "53183",
+      "label": "HIGH_RISK",
+      "num_items": 6,
+      "num_flags": 6,
+      "max_line_ratio": 3.37,
+      "bill_to_benchmark_ratio": 2.66
+    },
+    {
+      "scenario": "missing_rate",
+      "zip_code": "93044",
+      "label": "MEDIUM_RISK",
+      "num_items": 6,
+      "num_flags": 1,
+      "max_line_ratio": 1.7,
+      "bill_to_benchmark_ratio": 1.41
+    },
+    {
+      "scenario": "anesthesia_bill",
+      "zip_code": "60848",
+      "label": "LOW_RISK",
+      "num_items": 2,
+      "num_flags": 0,
+      "max_line_ratio": 1.23,
+      "bill_to_benchmark_ratio": 1.2
+    },
+    {
+      "scenario": "severe_overcharge",
+      "zip_code": "21936",
+      "label": "HIGH_RISK",
+      "num_items": 3,
+      "num_flags": 3,
+      "max_line_ratio": 8.01,
+      "bill_to_benchmark_ratio": 7.89
+    },
+    {
+      "scenario": "high_acuity",
+      "zip_code": "86916",
+      "label": "MEDIUM_RISK",
+      "num_items": 1,
+      "num_flags": 2,
+      "max_line_ratio": 2.27,
+      "bill_to_benchmark_ratio": 2.27
+    },
+    {
+      "scenario": "anesthesia_bill",
+      "zip_code": "04801",
+      "label": "LOW_RISK",
+      "num_items": 2,
+      "num_flags": 0,
+      "max_line_ratio": 1.53,
+      "bill_to_benchmark_ratio": 1.37
+    },
+    {
+      "scenario": "lab_bill",
+      "zip_code": "45841",
+      "label": "LOW_RISK",
+      "num_items": 4,
+      "num_flags": 0,
+      "max_line_ratio": 1.44,
+      "bill_to_benchmark_ratio": 1.33
+    },
+    {
+      "scenario": "duplicate",
+      "zip_code": "16373",
+      "label": "MEDIUM_RISK",
+      "num_items": 4,
+      "num_flags": 1,
+      "max_line_ratio": 1.52,
+      "bill_to_benchmark_ratio": 1.39
+    },
+    {
+      "scenario": "moderate_overcharge",
+      "zip_code": "37130",
+      "label": "HIGH_RISK",
+      "num_items": 2,
+      "num_flags": 2,
+      "max_line_ratio": 2.62,
+      "bill_to_benchmark_ratio": 2.27
+    },
+    {
+      "scenario": "normal",
+      "zip_code": "31371",
+      "label": "LOW_RISK",
+      "num_items": 4,
+      "num_flags": 0,
+      "max_line_ratio": 1.23,
+      "bill_to_benchmark_ratio": 1.02
+    }
+  ]
+}

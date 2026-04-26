@@ -7,9 +7,10 @@ from src.pdf_extract import extract_text
 from src.code_extract import extract_codes
 from src.analysis import run_all_checks
 from src.explain import generate_explanation, format_analysis_for_llm
+from src.risk_model import predict_bill_risk
 
 
-def analyze_bill(file_path: str) -> dict:
+def analyze_bill(file_path: str, zip_code: str | None = None) -> dict:
     """Run the full analysis pipeline on a medical bill."""
     # Step 1: Extract raw text from PDF/image
     print("Step 1: Extracting text from bill...")
@@ -59,6 +60,11 @@ def analyze_bill(file_path: str) -> dict:
     analysis["provider_name"] = bill_data.get("provider_name")
     analysis["extraction_method"] = bill_data.get("extraction_method", "unknown")
     analysis["extraction_warning"] = bill_data.get("warning")
+    analysis["zip_code"] = zip_code
+    try:
+        analysis["risk_model"] = predict_bill_risk(analysis, zip_code)
+    except Exception as exc:
+        analysis["risk_model_error"] = f"Risk model unavailable: {exc}"
     analysis["raw_text"] = raw_text
 
     # Step 4: Generate plain-English explanation
