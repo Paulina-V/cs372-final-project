@@ -57,6 +57,8 @@ def analyze_bill(file_path: str) -> dict:
     analysis = run_all_checks(line_items)
     analysis["patient_name"] = bill_data.get("patient_name")
     analysis["provider_name"] = bill_data.get("provider_name")
+    analysis["extraction_method"] = bill_data.get("extraction_method", "unknown")
+    analysis["extraction_warning"] = bill_data.get("warning")
     analysis["raw_text"] = raw_text
 
     # Step 4: Generate plain-English explanation

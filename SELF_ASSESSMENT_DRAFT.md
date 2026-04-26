@@ -11,10 +11,10 @@ This draft lists strong rubric items to consider claiming. Before submission, co
    Evidence: `src/pdf_extract.py` extracts text from PDFs, images, and text files before downstream processing.
 
 3. Applied feature engineering through local embeddings and structured billing fields (5 pts)  
-   Evidence: `src/rag.py` embeds CPT/HCPCS fee-schedule records with a deterministic local vectorizer; `src/code_extract.py` converts unstructured bill text into structured line items.
+   Evidence: `src/rag.py` embeds CPT/HCPCS fee-schedule records with a deterministic local vectorizer; `src/code_extract.py` converts unstructured bill text into validated structured line items.
 
 4. Other substantial ML contribution: custom retrieval pipeline over medical billing data (proposed 5 pts)  
-   Evidence: `src/rag.py` builds local vector embeddings, stores fee-schedule records in ChromaDB, and supports exact CPT lookup plus similarity search without external model downloads.
+   Evidence: `scripts/download_cms_data.py` constructs a 9,926-row CMS-style benchmark; `src/rag.py` builds local vector embeddings, stores fee-schedule records in ChromaDB, and supports exact CPT/HCPCS lookup plus similarity search without external model downloads.
 
 5. Made API calls to a state-of-the-art model with meaningful integration beyond a single isolated call (5 pts)  
    Evidence: `src/code_extract.py`, `src/explain.py`, and `src/dispute.py` use Duke GPT/OpenAI-compatible calls for extraction, explanation/chat, and dispute-letter generation.
@@ -32,13 +32,13 @@ This draft lists strong rubric items to consider claiming. Before submission, co
    Evidence: `app.py` implements a Gradio app with upload, explanation, chat, and dispute-letter flows.
 
 10. Measured and reported inference time, throughput, or computational efficiency (3 pts)  
-    Evidence: `eval/evaluate_rules.py` reports deterministic-check latency in `eval/results.json`.
+    Evidence: `eval/evaluate_rules.py` reports production-path deterministic-check latency in `eval/results.json`.
 
 11. Used at least three distinct and appropriate evaluation metrics for the task (3 pts)  
     Evidence: `eval/evaluate_rules.py` reports precision, recall, and F1.
 
 12. Conducted both qualitative and quantitative evaluation with thoughtful discussion (5 pts)  
-    Evidence: `eval/evaluate_rules.py`, `eval/results.json`, and the README evaluation/limitations sections.
+    Evidence: `eval/evaluate_rules.py`, `eval/results.json`, index parity checks, ten synthetic evaluation cases, and the README evaluation/limitations sections.
 
 13. Documented a design decision where you chose between ML approaches based on technical tradeoffs (3 pts)  
     Evidence: README/SETUP discussion of API model use, local retrieval, deterministic checks, and avoiding risky fine-tuning under project constraints.
@@ -59,7 +59,7 @@ This draft lists strong rubric items to consider claiming. Before submission, co
 
 ## Cohesion And Motivation
 
-The project has a single goal: help patients understand and dispute medical bills. The components work together toward that goal: document extraction produces bill text, the LLM structures it, retrieval supplies Medicare benchmark rates, deterministic checks flag possible billing issues, and generation produces explanations and dispute letters.
+The project has a single goal: help patients understand and dispute medical bills. The components work together toward that goal: document extraction produces bill text, the LLM structures and validates it, retrieval supplies Medicare benchmark rates, deterministic checks flag possible billing issues, and generation produces explanations, chat responses, and dispute letters.
 
 ## Remaining Items Before Submission
 

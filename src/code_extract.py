@@ -7,11 +7,11 @@ import json
 import re
 from src.llm import chat_completion
 
-EXTRACTION_PROMPT = """You are a medical billing expert. Analyze the following medical bill text and extract all line items.
+EXTRACTION_PROMPT = """You are a careful medical billing extraction system. Extract only information that is explicitly present in the bill text.
 
 For each line item, extract:
-- cpt_code: The CPT or HCPCS code (e.g., "99213")
-- icd_codes: Any associated ICD-10 diagnosis codes (e.g., ["J06.9"])
+- cpt_code: The CPT or HCPCS code exactly as written, such as "99213" or "J3490". Do not guess or infer missing codes.
+- icd_codes: Any associated ICD-10 diagnosis codes explicitly shown, such as ["J06.9"].
 - description: The service description
 - billed_amount: The amount charged in dollars (as a number)
 - date_of_service: The date of service if available
@@ -38,6 +38,7 @@ Respond ONLY with valid JSON in this format:
 }
 
 If you cannot find a value, use null. Do not include any text outside the JSON.
+If the text is messy, preserve uncertain fields as null instead of hallucinating.
 
 BILL TEXT:
 """
@@ -55,20 +56,111 @@ def extract_codes(bill_text: str) -> dict:
         fallback["warning"] = f"LLM extraction failed; used regex fallback instead: {exc}"
         return fallback
 
-    # Clean up potential markdown fences
-    if raw.startswith("```"):
-        raw = raw.split("\n", 1)[1]
-        if raw.endswith("```"):
-            raw = raw[:-3]
-        raw = raw.strip()
-
     try:
-        return json.loads(raw)
+        parsed = json.loads(_extract_json_object(raw))
     except json.JSONDecodeError:
         fallback = extract_codes_with_regex(bill_text)
         fallback["warning"] = "LLM response was not valid JSON; used regex fallback instead."
         fallback["raw_response"] = raw
         return fallback
+
+    normalized = normalize_bill_data(parsed)
+    normalized["extraction_method"] = "llm"
+    return normalized
+
+
+def _extract_json_object(raw: str) -> str:
+    """Extract a JSON object from a model response that may include fences."""
+    text = raw.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"\s*```$", "", text)
+
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        return text[start:end + 1]
+    return text
+
+
+def normalize_bill_data(data: dict) -> dict:
+    """Normalize LLM output into the schema expected by downstream analysis."""
+    line_items = data.get("line_items") if isinstance(data, dict) else []
+    if not isinstance(line_items, list):
+        line_items = []
+
+    normalized_items = []
+    warnings = []
+    for index, item in enumerate(line_items):
+        if not isinstance(item, dict):
+            warnings.append(f"Skipped non-object line item at index {index}.")
+            continue
+
+        cpt_code = _clean_code(item.get("cpt_code"))
+        billed_amount = _parse_amount(item.get("billed_amount"))
+        description = item.get("description")
+        date_of_service = item.get("date_of_service")
+        icd_codes = item.get("icd_codes") or []
+
+        if isinstance(icd_codes, str):
+            icd_codes = [icd_codes]
+        if not isinstance(icd_codes, list):
+            icd_codes = []
+
+        if billed_amount is None:
+            warnings.append(f"Skipped line item {index + 1} because billed_amount was missing or invalid.")
+            continue
+
+        normalized_items.append({
+            "cpt_code": cpt_code,
+            "icd_codes": [str(code).strip() for code in icd_codes if str(code).strip()],
+            "description": str(description).strip() if description else None,
+            "billed_amount": billed_amount,
+            "date_of_service": str(date_of_service).strip() if date_of_service else None,
+        })
+
+    result = {
+        "patient_name": _clean_optional_text(data.get("patient_name")) if isinstance(data, dict) else None,
+        "provider_name": _clean_optional_text(data.get("provider_name")) if isinstance(data, dict) else None,
+        "total_billed": _parse_amount(data.get("total_billed")) if isinstance(data, dict) else None,
+        "line_items": normalized_items,
+    }
+    if warnings:
+        result["warning"] = " ".join(warnings)
+    return result
+
+
+def _clean_code(value) -> str | None:
+    if value is None:
+        return None
+    code = str(value).strip().upper()
+    if not code or code in {"N/A", "NULL", "NONE"}:
+        return None
+    return code
+
+
+def _clean_optional_text(value) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text or text.lower() in {"null", "none", "n/a"}:
+        return None
+    return text
+
+
+def _parse_amount(value) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, int | float):
+        return float(value)
+    text = str(value).strip()
+    if not text or text.lower() in {"null", "none", "n/a"}:
+        return None
+    text = text.replace("$", "").replace(",", "")
+    try:
+        return float(text)
+    except ValueError:
+        return None
 
 
 def extract_codes_with_regex(bill_text: str) -> dict:

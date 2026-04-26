@@ -1,9 +1,6 @@
-"""
-Compare billed amounts against Medicare rates and flag anomalies.
-Includes rule-based checks for common billing errors.
-"""
+"""Compare billed amounts against benchmark rates and flag review signals."""
 
-from src.rag import query_rate, query_similar
+from src.rag import query_rate
 from src.config import OVERCHARGE_THRESHOLD
 
 
@@ -67,27 +64,39 @@ def check_duplicates(line_items: list) -> list:
     return flags
 
 
-UPCODING_PAIRS = [
-    ("99215", "99214", "High-complexity visit (99215) is often upcoded from 99214"),
-    ("99215", "99213", "High-complexity visit (99215) is often upcoded from 99213"),
-    ("99285", "99284", "High-severity ER visit (99285) may be upcoded"),
-    ("99285", "99283", "High-severity ER visit (99285) may be upcoded from 99283"),
-]
+HIGH_ACUITY_REVIEW_CODES = {
+    "99215": "High-complexity established-patient visit (99215) should be supported by documentation.",
+    "99285": "High-severity emergency department visit (99285) should be supported by acuity documentation.",
+}
 
 
 def check_upcoding(line_items: list) -> list:
-    """Flag potential upcoding based on known suspicious patterns."""
+    """Flag high-acuity CPT codes for documentation review."""
     codes = {item.get("cpt_code") for item in line_items}
     flags = []
 
-    for high, low, msg in UPCODING_PAIRS:
-        if high in codes:
+    for code, message in HIGH_ACUITY_REVIEW_CODES.items():
+        if code in codes:
             flags.append({
-                "type": "POTENTIAL_UPCODING",
-                "message": msg,
-                "code": high,
+                "type": "HIGH_ACUITY_CODE_REVIEW",
+                "message": message,
+                "code": code,
             })
 
+    return flags
+
+
+def check_missing_rates(rated_items: list) -> list:
+    """Flag extracted codes that could not be matched to a benchmark rate."""
+    flags = []
+    for item in rated_items:
+        code = item.get("cpt_code")
+        if code and not item.get("medicare_rate"):
+            flags.append({
+                "type": "RATE_NOT_FOUND",
+                "message": f"No benchmark rate was found for CPT/HCPCS {code}; verify the code and any modifiers.",
+                "code": code,
+            })
     return flags
 
 
@@ -96,13 +105,14 @@ def run_all_checks(line_items: list) -> dict:
     rated_items = compare_rates(line_items)
     duplicate_flags = check_duplicates(line_items)
     upcoding_flags = check_upcoding(line_items)
+    missing_rate_flags = check_missing_rates(rated_items)
 
     overcharge_flags = [
         {"type": "OVERCHARGE", "message": item["flag"], "code": item.get("cpt_code")}
         for item in rated_items if item.get("flag")
     ]
 
-    all_flags = overcharge_flags + duplicate_flags + upcoding_flags
+    all_flags = overcharge_flags + duplicate_flags + upcoding_flags + missing_rate_flags
 
     return {
         "rated_items": rated_items,

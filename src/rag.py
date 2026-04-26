@@ -1,27 +1,61 @@
-"""
-RAG pipeline over CMS Medicare fee schedule data.
-Indexes fee schedule records into ChromaDB for retrieval.
-"""
+"""Indexed retrieval over CMS-style Medicare fee schedule data."""
+
+import hashlib
+import math
+import re
 
 import pandas as pd
 import chromadb
-from chromadb.utils import embedding_functions
-from src.config import CHROMA_PERSIST_DIR, CMS_DATA_PATH, EMBEDDING_MODEL
+from src.config import CHROMA_PERSIST_DIR, CMS_DATA_PATH
+
+
+EMBEDDING_DIMENSION = 128
+
+
+class DeterministicEmbeddingFunction:
+    """Small local embedding function for reliable offline Chroma indexing."""
+
+    def __call__(self, input):
+        documents = [input] if isinstance(input, str) else input
+        return [_embed_text(document) for document in documents]
+
+    def embed_query(self, input):
+        return self(input)
+
+    def embed_documents(self, input):
+        return self(input)
+
+    @staticmethod
+    def name() -> str:
+        return "deterministic-token-hash-v1"
+
+
+def _embed_text(text: str) -> list[float]:
+    """Convert text into a normalized hashed bag-of-words vector."""
+    vector = [0.0] * EMBEDDING_DIMENSION
+    tokens = re.findall(r"[a-z0-9]+", str(text).lower())
+
+    for token in tokens:
+        digest = hashlib.blake2b(token.encode("utf-8"), digest_size=8).digest()
+        bucket = int.from_bytes(digest[:4], "big") % EMBEDDING_DIMENSION
+        sign = 1.0 if digest[4] % 2 == 0 else -1.0
+        vector[bucket] += sign
+
+    norm = math.sqrt(sum(value * value for value in vector))
+    if norm == 0:
+        return vector
+
+    return [value / norm for value in vector]
 
 
 def get_embedding_function():
-    return embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name=EMBEDDING_MODEL
-    )
+    return DeterministicEmbeddingFunction()
 
 
 def build_index(csv_path: str = CMS_DATA_PATH) -> chromadb.Collection:
     """Build a ChromaDB index from the CMS fee schedule CSV."""
     df = pd.read_csv(csv_path)
 
-    # Adapt column names based on actual CMS data format
-    # Common columns: HCPCS, Description, Fee
-    # We'll normalize in issue #2 once we see the real data
     documents = []
     metadatas = []
     ids = []
@@ -75,13 +109,13 @@ def get_collection() -> chromadb.Collection:
 
 
 def query_rate(code: str, collection: chromadb.Collection = None) -> dict:
-    """Look up the Medicare rate for a CPT/HCPCS code."""
+    """Look up the benchmark rate for an exact CPT/HCPCS code."""
     if collection is None:
         collection = get_collection()
 
     results = collection.query(
         query_texts=[f"CPT code {code}"],
-        n_results=3,
+        n_results=1,
         where={"code": code} if code else None,
     )
 

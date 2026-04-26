@@ -6,7 +6,7 @@ Paulina Vargas.
 
 ## Data Sources
 
-- `data/cms_fee_schedule.csv`: Local project fee schedule in CMS-style format with CPT/HCPCS codes, descriptions, and Medicare benchmark fees.
+- `data/cms_fee_schedule.csv`: Project-formatted CMS-style fee schedule with CPT/HCPCS codes, descriptions, and Medicare benchmark fees derived from CMS Physician Fee Schedule, Clinical Laboratory Fee Schedule, and anesthesia reference data.
 - `data/sample_bill.txt`: Synthetic medical bill used for demonstration and testing.
 
 ## Libraries And Tools
@@ -25,7 +25,9 @@ AI coding assistance was used to accelerate implementation, debugging, and docum
 - Reviewing the project structure and identifying reliability gaps.
 - Refactoring the LLM integration from Anthropic-specific calls to OpenAI-compatible calls.
 - Adding setup hardening, including `.txt` bill support and safer error handling for missing API keys, missing Chroma indexes, and model-call failures.
-- Creating the deterministic evaluation harness in `eval/evaluate_rules.py`.
+- Creating and refining the deterministic evaluation harness in `eval/evaluate_rules.py`.
+- Hardening LLM extraction with schema normalization, fallback metadata, and clearer prompts.
+- Expanding the CMS-style fee-schedule conversion script and documenting data limitations.
 - Drafting documentation files including `README.md`, `SETUP.md`, and this attribution document.
 
 Human judgment was used to choose the project goal, decide which rubric items to target, validate the design, review generated code, and keep the implementation aligned with the medical billing assistant use case.
@@ -39,6 +41,7 @@ Human judgment was used to choose the project goal, decide which rubric items to
 - `src/pdf_extract.py`
 - `app.py`
 - `eval/evaluate_rules.py`
+- `scripts/download_cms_data.py`
 - `README.md`
 - `SETUP.md`
 - `ATTRIBUTION.md`

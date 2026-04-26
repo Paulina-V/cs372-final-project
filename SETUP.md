@@ -43,7 +43,17 @@ brew install tesseract poppler
 
 Text PDFs and `.txt` demo bills do not require Tesseract.
 
-## 5. Build The Medicare Rate Index
+## 5. Optional: Refresh CMS Fee Schedule Data
+
+The repository includes a generated `data/cms_fee_schedule.csv`. To rebuild it from CMS sources, run:
+
+```bash
+python scripts/download_cms_data.py
+```
+
+This downloads and converts CMS Physician Fee Schedule and Clinical Laboratory Fee Schedule files, then adds anesthesia reference rates. You do not need to run this before every demo unless you intentionally want to refresh the source CSV.
+
+## 6. Build The Medicare Rate Index
 
 ```bash
 python scripts/build_index.py
@@ -51,7 +61,7 @@ python scripts/build_index.py
 
 This creates a local `chroma_db/` directory. It is ignored by git because it is generated from `data/cms_fee_schedule.csv`.
 
-## 6. Run The App
+## 7. Run The App
 
 ```bash
 python app.py
@@ -69,13 +79,13 @@ Open the Gradio URL printed in the terminal. For the most reliable demo, upload:
 data/sample_bill.txt
 ```
 
-## 7. Run Evaluation
+## 8. Run Evaluation
 
 ```bash
 python eval/evaluate_rules.py
 ```
 
-The script writes updated metrics to:
+The script rebuilds the local index, evaluates synthetic bills through the production deterministic analysis path, checks sampled index lookups against the CSV, and writes updated metrics to:
 
 ```text
 eval/results.json

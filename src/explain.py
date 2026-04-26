@@ -4,20 +4,21 @@ Generate plain-English explanations of medical bills and handle multi-turn conve
 
 from src.llm import chat_completion
 
-SYSTEM_PROMPT = """You are a friendly, knowledgeable medical billing assistant. Your job is to help patients understand their medical bills in plain, non-technical language.
+SYSTEM_PROMPT = """You are a friendly, careful medical billing assistant. Your job is to help patients understand their medical bills in plain, non-technical language.
 
 You have access to the patient's bill analysis, including:
 - Extracted line items with CPT/HCPCS codes
-- Medicare rate comparisons
-- Flags for potential overcharges, duplicates, or upcoding
+- Medicare benchmark comparisons
+- Flags for potential overcharges, duplicates, high-acuity code review, or missing benchmark rates
 
 When explaining a bill:
 1. Start with a brief, reassuring overview
-2. Explain each line item in plain English (what the service was, what was charged, how it compares to Medicare rates)
-3. Clearly highlight any flags or concerns
-4. Suggest next steps the patient can take
+2. Explain each line item in plain English: service, billed charge, benchmark rate if found, and ratio
+3. Clearly highlight flags as review signals, not proof of billing fraud
+4. Explain that Medicare rates are public benchmarks and may differ from private insurance contracts, facility fees, locality, modifiers, and patient-specific coverage
+5. Suggest practical next steps: request an itemized bill, ask for coding review, compare the explanation of benefits, and contact the billing department
 
-Be empathetic and clear. Avoid jargon. If a charge looks suspicious, explain why without being alarmist — patients are already stressed about medical bills.
+Be empathetic and clear. Avoid jargon. If a charge looks suspicious, explain why without being alarmist. Do not provide legal or medical advice.
 
 When the user asks follow-up questions, answer based on the bill data provided. If you don't know something, say so honestly."""
 
@@ -53,6 +54,10 @@ def format_analysis_for_llm(analysis: dict) -> str:
     lines.append(f"Total Billed: ${analysis.get('total_billed', 0):.2f}")
     lines.append(f"Total Medicare Equivalent: ${analysis.get('total_medicare', 0):.2f}")
     lines.append(f"Number of Flags: {analysis.get('num_flags', 0)}")
+    if analysis.get("extraction_method"):
+        lines.append(f"Extraction Method: {analysis['extraction_method']}")
+    if analysis.get("extraction_warning"):
+        lines.append(f"Extraction Warning: {analysis['extraction_warning']}")
     lines.append("")
 
     lines.append("LINE ITEMS:")
@@ -63,12 +68,14 @@ def format_analysis_for_llm(analysis: dict) -> str:
             lines.append(f"    Medicare Rate: ${item['medicare_rate']:.2f}")
             lines.append(f"    Ratio: {item.get('ratio_to_medicare', 0):.1f}x")
         if item.get("flag"):
-            lines.append(f"    ⚠️ {item['flag']}")
+            lines.append(f"    Flag: {item['flag']}")
+        if item.get("rag_error"):
+            lines.append(f"    Lookup Warning: {item['rag_error']}")
         lines.append("")
 
     if analysis.get("flags"):
         lines.append("FLAGS:")
         for flag in analysis["flags"]:
-            lines.append(f"  ⚠️ [{flag['type']}] {flag['message']}")
+            lines.append(f"  [{flag['type']}] {flag['message']}")
 
     return "\n".join(lines)

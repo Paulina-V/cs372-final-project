@@ -1,12 +1,139 @@
 {
-  "num_cases": 5,
-  "num_passed": 5,
-  "latency_seconds_total": 0.0002,
-  "latency_ms_per_case": 0.05,
+  "num_cases": 10,
+  "num_passed": 10,
+  "latency_seconds_total": 0.2255,
+  "latency_ms_per_case": 22.55,
   "metrics": {
     "precision": 1.0,
     "recall": 1.0,
     "f1": 1.0
+  },
+  "index_parity_check": {
+    "sample_size": 20,
+    "num_mismatches": 0,
+    "passed": true,
+    "examples": [
+      {
+        "code": "0001U",
+        "expected_fee": 720.0,
+        "actual_fee": 720.0,
+        "passed": true
+      },
+      {
+        "code": "0002M",
+        "expected_fee": 503.4,
+        "actual_fee": 503.4,
+        "passed": true
+      },
+      {
+        "code": "0002U",
+        "expected_fee": 25.0,
+        "actual_fee": 25.0,
+        "passed": true
+      },
+      {
+        "code": "0003M",
+        "expected_fee": 503.4,
+        "actual_fee": 503.4,
+        "passed": true
+      },
+      {
+        "code": "0003U",
+        "expected_fee": 950.0,
+        "actual_fee": 950.0,
+        "passed": true
+      },
+      {
+        "code": "0004M",
+        "expected_fee": 79.0,
+        "actual_fee": 79.0,
+        "passed": true
+      },
+      {
+        "code": "0005U",
+        "expected_fee": 760.0,
+        "actual_fee": 760.0,
+        "passed": true
+      },
+      {
+        "code": "0006M",
+        "expected_fee": 150.0,
+        "actual_fee": 150.0,
+        "passed": true
+      },
+      {
+        "code": "0007M",
+        "expected_fee": 375.0,
+        "actual_fee": 375.0,
+        "passed": true
+      },
+      {
+        "code": "0007U",
+        "expected_fee": 114.43,
+        "actual_fee": 114.43,
+        "passed": true
+      },
+      {
+        "code": "0008U",
+        "expected_fee": 597.91,
+        "actual_fee": 597.91,
+        "passed": true
+      },
+      {
+        "code": "0009U",
+        "expected_fee": 107.0,
+        "actual_fee": 107.0,
+        "passed": true
+      },
+      {
+        "code": "00100",
+        "expected_fee": 102.49,
+        "actual_fee": 102.49,
+        "passed": true
+      },
+      {
+        "code": "00102",
+        "expected_fee": 122.99,
+        "actual_fee": 122.99,
+        "passed": true
+      },
+      {
+        "code": "00103",
+        "expected_fee": 102.49,
+        "actual_fee": 102.49,
+        "passed": true
+      },
+      {
+        "code": "00104",
+        "expected_fee": 81.99,
+        "actual_fee": 81.99,
+        "passed": true
+      },
+      {
+        "code": "0010U",
+        "expected_fee": 427.26,
+        "actual_fee": 427.26,
+        "passed": true
+      },
+      {
+        "code": "0011M",
+        "expected_fee": 760.0,
+        "actual_fee": 760.0,
+        "passed": true
+      },
+      {
+        "code": "0011U",
+        "expected_fee": 114.43,
+        "actual_fee": 114.43,
+        "passed": true
+      },
+      {
+        "code": "00120",
+        "expected_fee": 102.49,
+        "actual_fee": 102.49,
+        "passed": true
+      }
+    ]
   },
   "cases": [
     {
@@ -14,20 +141,24 @@
       "num_line_items": 2,
       "expected_flags": [],
       "predicted_flags": [],
-      "passed": true
+      "passed": true,
+      "total_billed": 130.0,
+      "total_medicare": 128.9
     },
     {
       "name": "overcharged_er_visit",
       "num_line_items": 2,
       "expected_flags": [
-        "OVERCHARGE",
-        "POTENTIAL_UPCODING"
+        "HIGH_ACUITY_CODE_REVIEW",
+        "OVERCHARGE"
       ],
       "predicted_flags": [
-        "OVERCHARGE",
-        "POTENTIAL_UPCODING"
+        "HIGH_ACUITY_CODE_REVIEW",
+        "OVERCHARGE"
       ],
-      "passed": true
+      "passed": true,
+      "total_billed": 3235.0,
+      "total_medicare": 205.43
     },
     {
       "name": "duplicate_charge",
@@ -38,35 +169,94 @@
       "predicted_flags": [
         "DUPLICATE"
       ],
-      "passed": true
+      "passed": true,
+      "total_billed": 10.0,
+      "total_medicare": 15.54
     },
     {
-      "name": "upcoded_office_visit",
+      "name": "high_acuity_office_review",
       "num_line_items": 1,
       "expected_flags": [
-        "OVERCHARGE",
-        "POTENTIAL_UPCODING"
+        "HIGH_ACUITY_CODE_REVIEW",
+        "OVERCHARGE"
       ],
       "predicted_flags": [
-        "OVERCHARGE",
-        "POTENTIAL_UPCODING"
+        "HIGH_ACUITY_CODE_REVIEW",
+        "OVERCHARGE"
       ],
-      "passed": true
+      "passed": true,
+      "total_billed": 475.0,
+      "total_medicare": 193.35
     },
     {
       "name": "mixed_multiple_flags",
       "num_line_items": 3,
       "expected_flags": [
         "DUPLICATE",
-        "OVERCHARGE",
-        "POTENTIAL_UPCODING"
+        "HIGH_ACUITY_CODE_REVIEW",
+        "OVERCHARGE"
       ],
       "predicted_flags": [
         "DUPLICATE",
-        "OVERCHARGE",
-        "POTENTIAL_UPCODING"
+        "HIGH_ACUITY_CODE_REVIEW",
+        "OVERCHARGE"
       ],
-      "passed": true
+      "passed": true,
+      "total_billed": 6040.0,
+      "total_medicare": 359.84
+    },
+    {
+      "name": "unknown_code",
+      "num_line_items": 1,
+      "expected_flags": [
+        "RATE_NOT_FOUND"
+      ],
+      "predicted_flags": [
+        "RATE_NOT_FOUND"
+      ],
+      "passed": true,
+      "total_billed": 300.0,
+      "total_medicare": 0
+    },
+    {
+      "name": "lab_heavy_bill",
+      "num_line_items": 3,
+      "expected_flags": [],
+      "predicted_flags": [],
+      "passed": true,
+      "total_billed": 25.91,
+      "total_medicare": 27.67
+    },
+    {
+      "name": "lab_overcharge",
+      "num_line_items": 2,
+      "expected_flags": [
+        "OVERCHARGE"
+      ],
+      "predicted_flags": [
+        "OVERCHARGE"
+      ],
+      "passed": true,
+      "total_billed": 230.0,
+      "total_medicare": 18.33
+    },
+    {
+      "name": "duplicate_different_dates_not_flagged",
+      "num_line_items": 2,
+      "expected_flags": [],
+      "predicted_flags": [],
+      "passed": true,
+      "total_billed": 190.0,
+      "total_medicare": 191.34
+    },
+    {
+      "name": "anesthesia_reference_code",
+      "num_line_items": 1,
+      "expected_flags": [],
+      "predicted_flags": [],
+      "passed": true,
+      "total_billed": 82.0,
+      "total_medicare": 81.99
     }
   ]
 }
