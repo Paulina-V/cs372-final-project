@@ -1,0 +1,354 @@
+{
+  "comparison": {
+    "hash": {
+      "embedding_type": "hash",
+      "index_build_time_s": 3.77,
+      "exact_code_lookup": {
+        "accuracy": 1.0,
+        "results": [
+          {
+            "code": "99213",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 19.92
+          },
+          {
+            "code": "99285",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 5.3
+          },
+          {
+            "code": "80053",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 3.98
+          },
+          {
+            "code": "85025",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 4.54
+          },
+          {
+            "code": "71046",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 4.97
+          },
+          {
+            "code": "93000",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 6.08
+          },
+          {
+            "code": "96365",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 9.24
+          },
+          {
+            "code": "99215",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 8.53
+          },
+          {
+            "code": "36415",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 7.85
+          },
+          {
+            "code": "00100",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 8.58
+          }
+        ]
+      },
+      "description_search": {
+        "avg_recall_at_5": 0.167,
+        "results": [
+          {
+            "query": "emergency department visit",
+            "retrieved_codes": [
+              "78306",
+              "23146",
+              "20939",
+              "88368",
+              "67808"
+            ],
+            "expected_any_of": [
+              "99281",
+              "99282",
+              "99283",
+              "99284",
+              "99285"
+            ],
+            "hits_at_5": 0,
+            "recall_at_5": 0.0,
+            "latency_ms": 12.91
+          },
+          {
+            "query": "chest x-ray",
+            "retrieved_codes": [
+              "75827",
+              "55300",
+              "71046",
+              "71048",
+              "75831"
+            ],
+            "expected_any_of": [
+              "71045",
+              "71046",
+              "71047",
+              "71048"
+            ],
+            "hits_at_5": 2,
+            "recall_at_5": 0.5,
+            "latency_ms": 3.59
+          },
+          {
+            "query": "blood count",
+            "retrieved_codes": [
+              "26250",
+              "53446",
+              "85576",
+              "46760",
+              "88285"
+            ],
+            "expected_any_of": [
+              "85025",
+              "85027",
+              "85004"
+            ],
+            "hits_at_5": 0,
+            "recall_at_5": 0.0,
+            "latency_ms": 6.97
+          },
+          {
+            "query": "metabolic panel",
+            "retrieved_codes": [
+              "80053",
+              "51525",
+              "51580",
+              "51702",
+              "51596"
+            ],
+            "expected_any_of": [
+              "80048",
+              "80053",
+              "80050"
+            ],
+            "hits_at_5": 1,
+            "recall_at_5": 0.333,
+            "latency_ms": 2.44
+          },
+          {
+            "query": "office visit established patient",
+            "retrieved_codes": [
+              "20939",
+              "21044",
+              "67840",
+              "43100",
+              "76982"
+            ],
+            "expected_any_of": [
+              "99211",
+              "99212",
+              "99213",
+              "99214",
+              "99215"
+            ],
+            "hits_at_5": 0,
+            "recall_at_5": 0.0,
+            "latency_ms": 1.64
+          }
+        ]
+      }
+    },
+    "semantic": {
+      "embedding_type": "semantic",
+      "index_build_time_s": 24.75,
+      "exact_code_lookup": {
+        "accuracy": 1.0,
+        "results": [
+          {
+            "code": "99213",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 109.88
+          },
+          {
+            "code": "99285",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 18.97
+          },
+          {
+            "code": "80053",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 52.87
+          },
+          {
+            "code": "85025",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 16.11
+          },
+          {
+            "code": "71046",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 17.9
+          },
+          {
+            "code": "93000",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 17.42
+          },
+          {
+            "code": "96365",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 18.17
+          },
+          {
+            "code": "99215",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 21.24
+          },
+          {
+            "code": "36415",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 21.54
+          },
+          {
+            "code": "00100",
+            "found": true,
+            "fee_match": true,
+            "latency_ms": 19.68
+          }
+        ]
+      },
+      "description_search": {
+        "avg_recall_at_5": 0.25,
+        "results": [
+          {
+            "query": "emergency department visit",
+            "retrieved_codes": [
+              "49020",
+              "53060",
+              "43425",
+              "43415",
+              "44900"
+            ],
+            "expected_any_of": [
+              "99281",
+              "99282",
+              "99283",
+              "99284",
+              "99285"
+            ],
+            "hits_at_5": 0,
+            "recall_at_5": 0.0,
+            "latency_ms": 50.09
+          },
+          {
+            "query": "chest x-ray",
+            "retrieved_codes": [
+              "71101",
+              "71111",
+              "75756",
+              "71048",
+              "71100"
+            ],
+            "expected_any_of": [
+              "71045",
+              "71046",
+              "71047",
+              "71048"
+            ],
+            "hits_at_5": 1,
+            "recall_at_5": 0.25,
+            "latency_ms": 324.28
+          },
+          {
+            "query": "blood count",
+            "retrieved_codes": [
+              "85396",
+              "85004",
+              "85048",
+              "85009",
+              "85049"
+            ],
+            "expected_any_of": [
+              "85025",
+              "85027",
+              "85004"
+            ],
+            "hits_at_5": 1,
+            "recall_at_5": 0.333,
+            "latency_ms": 63.18
+          },
+          {
+            "query": "metabolic panel",
+            "retrieved_codes": [
+              "80053",
+              "80048",
+              "84210",
+              "84220",
+              "80051"
+            ],
+            "expected_any_of": [
+              "80048",
+              "80053",
+              "80050"
+            ],
+            "hits_at_5": 2,
+            "recall_at_5": 0.667,
+            "latency_ms": 11.63
+          },
+          {
+            "query": "office visit established patient",
+            "retrieved_codes": [
+              "92002",
+              "70544",
+              "92012",
+              "72198",
+              "70547"
+            ],
+            "expected_any_of": [
+              "99211",
+              "99212",
+              "99213",
+              "99214",
+              "99215"
+            ],
+            "hits_at_5": 0,
+            "recall_at_5": 0.0,
+            "latency_ms": 11.9
+          }
+        ]
+      }
+    }
+  },
+  "summary": {
+    "hash": {
+      "exact_lookup_accuracy": 1.0,
+      "description_recall_at_5": 0.167,
+      "index_build_time_s": 3.77
+    },
+    "semantic": {
+      "exact_lookup_accuracy": 1.0,
+      "description_recall_at_5": 0.25,
+      "index_build_time_s": 24.75
+    }
+  }
+}

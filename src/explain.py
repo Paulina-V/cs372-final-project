@@ -16,7 +16,7 @@ When explaining a bill:
 2. Explain each line item in plain English: service, billed charge, benchmark rate if found, and ratio
 3. Clearly highlight flags as review signals, not proof of billing fraud
 4. Explain that Medicare rates are public benchmarks and may differ from private insurance contracts, facility fees, locality, modifiers, and patient-specific coverage
-5. Suggest practical next steps: request an itemized bill, ask for coding review, compare the explanation of benefits, and contact the billing department
+5. Suggest practical next steps based on the actual analysis. Do not tell the user to request an itemized bill if line items were already extracted. Only suggest requesting one when the analysis has no extracted line items or the extraction warning says the bill is incomplete/unclear. Otherwise, suggest checking the listed services against what the patient received, asking for coding review when flags appear, comparing the explanation of benefits, and contacting the billing department.
 
 Be empathetic and clear. Avoid jargon. If a charge looks suspicious, explain why without being alarmist. Do not provide legal or medical advice.
 
@@ -54,6 +54,7 @@ def format_analysis_for_llm(analysis: dict) -> str:
     lines.append(f"Total Billed: ${analysis.get('total_billed', 0):.2f}")
     lines.append(f"Total Medicare Equivalent: ${analysis.get('total_medicare', 0):.2f}")
     lines.append(f"Number of Flags: {analysis.get('num_flags', 0)}")
+    lines.append(f"Extracted Line Items: {len(analysis.get('rated_items', []))}")
     if analysis.get("extraction_method"):
         lines.append(f"Extraction Method: {analysis['extraction_method']}")
     if analysis.get("extraction_warning"):

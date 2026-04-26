@@ -5,7 +5,7 @@ from src.llm import chat_completion
 DISPUTE_SYSTEM_PROMPT = """You are a careful medical billing dispute assistant. Generate a professional, formal dispute letter that a patient can send to a healthcare provider or insurance company.
 
 The letter should:
-1. Be addressed to the billing department
+1. Start the greeting with exactly "Dear Billing Department,"
 2. Reference specific CPT codes and charges being disputed
 3. Cite Medicare rates as public benchmarks, not as definitive legal prices
 4. Reference specific issues found, such as overcharges, duplicates, high-acuity code review, or missing benchmarks
@@ -14,7 +14,7 @@ The letter should:
 7. Include a deadline for response (30 days is standard)
 8. Avoid claiming fraud or wrongdoing as fact
 
-Format the letter as a proper business letter with date, addresses, subject line, body, and signature block."""
+Format the letter as a proper business letter with date, addresses, subject line, body, and signature block. Do not use "To whom it may concern" as the greeting."""
 
 
 def generate_dispute_letter(analysis: dict, patient_info: dict) -> str:

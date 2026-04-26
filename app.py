@@ -1,9 +1,14 @@
 """
 Medical Billing Assistant — Gradio Web App
 Upload a medical bill, get a plain-English explanation, and generate a dispute letter.
+
+Production considerations: structured logging, in-memory rate limiting, and
+graceful error handling for all user-facing operations.
 """
 
+import logging
 import os
+import time
 
 import gradio as gr
 from src.pipeline import analyze_bill
@@ -13,22 +18,75 @@ from src.llm import user_facing_model_error
 from src.risk_model import format_risk_summary
 
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("app.log", encoding="utf-8"),
+    ],
+)
+logger = logging.getLogger("medical_billing_assistant")
+
+
+class RateLimiter:
+    """Simple in-memory rate limiter per session (IP not available in Gradio)."""
+
+    def __init__(self, max_requests: int = 20, window_seconds: int = 60):
+        self._max = max_requests
+        self._window = window_seconds
+        self._requests: list[float] = []
+
+    def check(self) -> bool:
+        now = time.time()
+        self._requests = [t for t in self._requests if now - t < self._window]
+        if len(self._requests) >= self._max:
+            return False
+        self._requests.append(now)
+        return True
+
+    @property
+    def remaining(self) -> int:
+        now = time.time()
+        self._requests = [t for t in self._requests if now - t < self._window]
+        return max(0, self._max - len(self._requests))
+
+
+rate_limiter = RateLimiter(max_requests=20, window_seconds=60)
+
+
 def process_bill(file, zip_code):
     """Handle bill upload and run the full pipeline."""
     if file is None:
         return "Please upload a medical bill (PDF, image, or text file).", [], {}
 
+    if not rate_limiter.check():
+        logger.warning("Rate limit exceeded for bill analysis request")
+        return "Rate limit exceeded. Please wait a moment before trying again.", [], {}
+
+    logger.info("Starting bill analysis for file: %s (ZIP: %s)", file.name, zip_code or "none")
+    start = time.time()
+
     try:
         result = analyze_bill(file.name, zip_code=zip_code)
     except Exception as exc:
+        logger.exception("Unexpected error during bill analysis")
         return f"Unexpected error while analyzing bill: {exc}", [], {}
 
+    elapsed = time.time() - start
+    logger.info(
+        "Bill analysis complete: %d items, %d flags, %.2fs",
+        len(result.get("rated_items", [])),
+        result.get("num_flags", 0),
+        elapsed,
+    )
+
     if result.get("error"):
+        logger.warning("Analysis returned error: %s", result["error"])
         return f"Error: {result['error']}", [], {}
 
     explanation = _format_analysis_output(result)
 
-    # Build initial chat history in Gradio's messages format.
     history = [
         {"role": "assistant", "content": explanation}
     ]
@@ -48,7 +106,15 @@ def respond(message, history, analysis):
             {"role": "assistant", "content": "Please upload a bill first using the upload tab."},
         ]
 
-    # Keep only role/content messages for the chat completion API.
+    if not rate_limiter.check():
+        logger.warning("Rate limit exceeded for chat request")
+        return history + [
+            {"role": "user", "content": message},
+            {"role": "assistant", "content": "Rate limit exceeded. Please wait a moment before trying again."},
+        ]
+
+    logger.info("Chat follow-up question: %s", message[:100])
+
     api_messages = []
     for msg in history:
         if isinstance(msg, dict) and msg.get("role") in {"user", "assistant"}:
@@ -58,6 +124,7 @@ def respond(message, history, analysis):
     try:
         response = chat(api_messages, analysis)
     except Exception as exc:
+        logger.exception("Chat model call failed")
         response = f"I could not reach the chat model right now. Error: {user_facing_model_error(exc)}"
 
     history = history + [
@@ -76,6 +143,12 @@ def generate_dispute(name, address, account_id, dispute_all, analysis):
     if not analysis.get("flags"):
         return "No issues were flagged in your bill; there's nothing to dispute."
 
+    if not rate_limiter.check():
+        logger.warning("Rate limit exceeded for dispute letter request")
+        return "Rate limit exceeded. Please wait a moment before trying again."
+
+    logger.info("Generating dispute letter for account: %s", account_id or "unknown")
+
     patient_info = {
         "patient_name": name or analysis.get("patient_name", ""),
         "address": address,
@@ -87,8 +160,10 @@ def generate_dispute(name, address, account_id, dispute_all, analysis):
     try:
         letter = generate_dispute_letter(analysis, patient_info)
     except Exception as exc:
+        logger.exception("Dispute letter generation failed")
         return f"I could not generate the dispute letter because the model call failed: {user_facing_model_error(exc)}"
 
+    logger.info("Dispute letter generated successfully")
     return letter
 
 
@@ -134,7 +209,6 @@ def build_app():
         )
 
         with gr.Tabs():
-            # Tab 1: Bill Analysis
             with gr.Tab("Analyze Bill"):
                 with gr.Row():
                     with gr.Column(scale=1):
@@ -168,7 +242,6 @@ def build_app():
                     outputs=[chatbot],
                 ).then(lambda: "", outputs=[msg_input])
 
-            # Tab 2: Dispute Letter
             with gr.Tab("Dispute Letter"):
                 gr.Markdown("### Generate a Dispute Letter")
                 gr.Markdown("Fill in your details below and we'll generate a formal dispute letter you can send.")
@@ -188,7 +261,6 @@ def build_app():
                     outputs=[letter_output],
                 )
 
-            # Tab 3: About
             with gr.Tab("About"):
                 gr.Markdown(
                     """
@@ -221,6 +293,9 @@ def build_app():
 
 
 if __name__ == "__main__":
+    logger.info("Starting Medical Billing Assistant application")
     app = build_app()
     share = os.getenv("GRADIO_SHARE", "false").lower() == "true"
-    app.launch(share=share, theme=gr.themes.Soft())
+    server_name = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
+    server_port = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
+    app.launch(share=share, server_name=server_name, server_port=server_port, theme=gr.themes.Soft())

@@ -1,8 +1,17 @@
-"""Indexed retrieval over CMS-style Medicare fee schedule data."""
+"""Indexed retrieval over CMS-style Medicare fee schedule data.
+
+Supports two embedding strategies:
+  1. Deterministic hash-based (default, offline, lightweight)
+  2. Sentence-transformer semantic embeddings (higher retrieval quality)
+
+Use RAG_EMBEDDING_TYPE=semantic in .env to enable semantic embeddings.
+"""
 
 import hashlib
 import math
+import os
 import re
+import warnings
 
 import pandas as pd
 import chromadb
@@ -10,6 +19,7 @@ from src.config import CHROMA_PERSIST_DIR, CMS_DATA_PATH
 
 
 EMBEDDING_DIMENSION = 128
+RAG_EMBEDDING_TYPE = os.getenv("RAG_EMBEDDING_TYPE", "hash")
 
 
 class DeterministicEmbeddingFunction:
@@ -30,6 +40,29 @@ class DeterministicEmbeddingFunction:
         return "deterministic-token-hash-v1"
 
 
+class SemanticEmbeddingFunction:
+    """Sentence-transformer embeddings for higher-quality semantic retrieval."""
+
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
+        from sentence_transformers import SentenceTransformer
+        self._model = SentenceTransformer(model_name)
+        self._model_name = model_name
+
+    def __call__(self, input):
+        documents = [input] if isinstance(input, str) else input
+        embeddings = self._model.encode(documents, normalize_embeddings=True)
+        return embeddings.tolist()
+
+    def embed_query(self, input):
+        return self(input)
+
+    def embed_documents(self, input):
+        return self(input)
+
+    def name(self) -> str:
+        return f"sentence-transformer-{self._model_name}"
+
+
 def _embed_text(text: str) -> list[float]:
     """Convert text into a normalized hashed bag-of-words vector."""
     vector = [0.0] * EMBEDDING_DIMENSION
@@ -48,12 +81,34 @@ def _embed_text(text: str) -> list[float]:
     return [value / norm for value in vector]
 
 
-def get_embedding_function():
+def get_embedding_function(embedding_type: str | None = None):
+    """Return the configured embedding function."""
+    chosen = embedding_type or RAG_EMBEDDING_TYPE
+    if chosen == "semantic":
+        try:
+            return SemanticEmbeddingFunction()
+        except Exception as exc:
+            if embedding_type == "semantic":
+                raise
+            warnings.warn(
+                f"Semantic embeddings unavailable ({exc}); using deterministic hash embeddings instead.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
     return DeterministicEmbeddingFunction()
 
 
-def build_index(csv_path: str = CMS_DATA_PATH) -> chromadb.Collection:
+def _collection_name(embedding_type: str | None = None) -> str:
+    chosen = embedding_type or RAG_EMBEDDING_TYPE
+    if chosen == "semantic":
+        return "cms_fee_schedule_semantic"
+    return "cms_fee_schedule"
+
+
+def build_index(csv_path: str = CMS_DATA_PATH, embedding_type: str | None = None) -> chromadb.Collection:
     """Build a ChromaDB index from the CMS fee schedule CSV."""
+    ef = get_embedding_function(embedding_type)
+    col_name = _collection_name(embedding_type)
     df = pd.read_csv(csv_path)
 
     documents = []
@@ -74,18 +129,16 @@ def build_index(csv_path: str = CMS_DATA_PATH) -> chromadb.Collection:
 
     client = chromadb.PersistentClient(path=CHROMA_PERSIST_DIR)
 
-    # Delete existing collection if it exists
     try:
-        client.delete_collection("cms_fee_schedule")
+        client.delete_collection(col_name)
     except Exception:
         pass
 
     collection = client.create_collection(
-        name="cms_fee_schedule",
-        embedding_function=get_embedding_function(),
+        name=col_name,
+        embedding_function=ef,
     )
 
-    # Insert in batches
     batch_size = 500
     for start in range(0, len(documents), batch_size):
         end = min(start + batch_size, len(documents))
@@ -95,17 +148,22 @@ def build_index(csv_path: str = CMS_DATA_PATH) -> chromadb.Collection:
             ids=ids[start:end],
         )
 
-    print(f"Indexed {len(documents)} records into ChromaDB.")
+    print(f"Indexed {len(documents)} records into ChromaDB ({ef.name() if hasattr(ef, 'name') and callable(ef.name) else type(ef).__name__}).")
     return collection
 
 
-def get_collection() -> chromadb.Collection:
-    """Get the existing ChromaDB collection."""
+def get_collection(embedding_type: str | None = None) -> chromadb.Collection:
+    """Get the existing ChromaDB collection, building the index if needed."""
+    ef = get_embedding_function(embedding_type)
+    col_name = _collection_name(embedding_type)
     client = chromadb.PersistentClient(path=CHROMA_PERSIST_DIR)
-    return client.get_collection(
-        name="cms_fee_schedule",
-        embedding_function=get_embedding_function(),
-    )
+    try:
+        return client.get_collection(
+            name=col_name,
+            embedding_function=ef,
+        )
+    except Exception:
+        return build_index(CMS_DATA_PATH, embedding_type)
 
 
 def query_rate(code: str, collection: chromadb.Collection = None) -> dict:

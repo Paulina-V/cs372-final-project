@@ -1,0 +1,180 @@
+{
+  "prompts_evaluated": [
+    "minimal",
+    "structured",
+    "chain_of_thought"
+  ],
+  "results": {
+    "minimal": {
+      "summary": {
+        "avg_code_precision": 0.667,
+        "avg_code_recall": 1.0,
+        "avg_latency_ms": 1724,
+        "item_count_accuracy": 1.0,
+        "total_accuracy": 1.0,
+        "success_rate": 1.0
+      },
+      "details": [
+        {
+          "valid_json": true,
+          "item_count": 4,
+          "item_count_expected": 4,
+          "item_count_correct": true,
+          "code_precision": 1.0,
+          "code_recall": 1.0,
+          "total_correct": true,
+          "extracted_total": 3780.0,
+          "has_patient_name": true,
+          "has_provider_name": true,
+          "latency_ms": 1785,
+          "success": true,
+          "bill_name": "clean_er_bill"
+        },
+        {
+          "valid_json": true,
+          "item_count": 3,
+          "item_count_expected": 3,
+          "item_count_correct": true,
+          "code_precision": 0.0,
+          "code_recall": 1.0,
+          "total_correct": true,
+          "extracted_total": 330.0,
+          "has_patient_name": true,
+          "has_provider_name": true,
+          "latency_ms": 1430,
+          "success": true,
+          "bill_name": "messy_bill_partial_codes"
+        },
+        {
+          "valid_json": true,
+          "item_count": 5,
+          "item_count_expected": 5,
+          "item_count_correct": true,
+          "code_precision": 1.0,
+          "code_recall": 1.0,
+          "total_correct": true,
+          "extracted_total": 6660.0,
+          "has_patient_name": true,
+          "has_provider_name": true,
+          "latency_ms": 1956,
+          "success": true,
+          "bill_name": "complex_multi_date"
+        }
+      ]
+    },
+    "structured": {
+      "summary": {
+        "avg_code_precision": 0.667,
+        "avg_code_recall": 1.0,
+        "avg_latency_ms": 2713,
+        "item_count_accuracy": 1.0,
+        "total_accuracy": 1.0,
+        "success_rate": 1.0
+      },
+      "details": [
+        {
+          "valid_json": true,
+          "item_count": 4,
+          "item_count_expected": 4,
+          "item_count_correct": true,
+          "code_precision": 1.0,
+          "code_recall": 1.0,
+          "total_correct": true,
+          "extracted_total": 3780.0,
+          "has_patient_name": true,
+          "has_provider_name": true,
+          "latency_ms": 3239,
+          "success": true,
+          "bill_name": "clean_er_bill"
+        },
+        {
+          "valid_json": true,
+          "item_count": 3,
+          "item_count_expected": 3,
+          "item_count_correct": true,
+          "code_precision": 0.0,
+          "code_recall": 1.0,
+          "total_correct": true,
+          "extracted_total": 330.0,
+          "has_patient_name": true,
+          "has_provider_name": true,
+          "latency_ms": 2939,
+          "success": true,
+          "bill_name": "messy_bill_partial_codes"
+        },
+        {
+          "valid_json": true,
+          "item_count": 5,
+          "item_count_expected": 5,
+          "item_count_correct": true,
+          "code_precision": 1.0,
+          "code_recall": 1.0,
+          "total_correct": true,
+          "extracted_total": 6660.0,
+          "has_patient_name": true,
+          "has_provider_name": true,
+          "latency_ms": 1961,
+          "success": true,
+          "bill_name": "complex_multi_date"
+        }
+      ]
+    },
+    "chain_of_thought": {
+      "summary": {
+        "avg_code_precision": 0.667,
+        "avg_code_recall": 1.0,
+        "avg_latency_ms": 3737,
+        "item_count_accuracy": 1.0,
+        "total_accuracy": 1.0,
+        "success_rate": 1.0
+      },
+      "details": [
+        {
+          "valid_json": true,
+          "item_count": 4,
+          "item_count_expected": 4,
+          "item_count_correct": true,
+          "code_precision": 1.0,
+          "code_recall": 1.0,
+          "total_correct": true,
+          "extracted_total": 3780.0,
+          "has_patient_name": true,
+          "has_provider_name": true,
+          "latency_ms": 3658,
+          "success": true,
+          "bill_name": "clean_er_bill"
+        },
+        {
+          "valid_json": true,
+          "item_count": 3,
+          "item_count_expected": 3,
+          "item_count_correct": true,
+          "code_precision": 0.0,
+          "code_recall": 1.0,
+          "total_correct": true,
+          "extracted_total": 330.0,
+          "has_patient_name": true,
+          "has_provider_name": true,
+          "latency_ms": 3142,
+          "success": true,
+          "bill_name": "messy_bill_partial_codes"
+        },
+        {
+          "valid_json": true,
+          "item_count": 5,
+          "item_count_expected": 5,
+          "item_count_correct": true,
+          "code_precision": 1.0,
+          "code_recall": 1.0,
+          "total_correct": true,
+          "extracted_total": 6660.0,
+          "has_patient_name": true,
+          "has_provider_name": true,
+          "latency_ms": 4411,
+          "success": true,
+          "bill_name": "complex_multi_date"
+        }
+      ]
+    }
+  }
+}

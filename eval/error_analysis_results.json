@@ -1,0 +1,204 @@
+{
+  "test_accuracy": 0.9956,
+  "num_test_examples": 450,
+  "num_misclassified": 2,
+  "misclassified_examples": [
+    {
+      "index": 16,
+      "predicted": "LOW_RISK",
+      "actual": "MEDIUM_RISK",
+      "scenario": "high_acuity",
+      "features": {
+        "num_line_items": 1.0,
+        "total_billed": 345.13,
+        "total_benchmark": 172.2,
+        "bill_to_benchmark_ratio": 2.0042,
+        "max_line_ratio": 2.0042,
+        "mean_line_ratio": 2.0042,
+        "num_overcharge_flags": 1.0,
+        "num_duplicate_flags": 0.0,
+        "num_high_acuity_flags": 1.0,
+        "num_missing_rate_flags": 0.0,
+        "num_unmatched_codes": 0.0,
+        "fraction_unmatched_codes": 0.0,
+        "lab_code_count": 0.0,
+        "imaging_code_count": 0.0,
+        "anesthesia_code_count": 0.0,
+        "emergency_code_count": 1.0,
+        "zip_region_multiplier": 0.95
+      }
+    },
+    {
+      "index": 92,
+      "predicted": "LOW_RISK",
+      "actual": "MEDIUM_RISK",
+      "scenario": "high_acuity",
+      "features": {
+        "num_line_items": 1.0,
+        "total_billed": 345.25,
+        "total_benchmark": 172.2,
+        "bill_to_benchmark_ratio": 2.0049,
+        "max_line_ratio": 2.0049,
+        "mean_line_ratio": 2.0049,
+        "num_overcharge_flags": 1.0,
+        "num_duplicate_flags": 0.0,
+        "num_high_acuity_flags": 1.0,
+        "num_missing_rate_flags": 0.0,
+        "num_unmatched_codes": 0.0,
+        "fraction_unmatched_codes": 0.0,
+        "lab_code_count": 0.0,
+        "imaging_code_count": 0.0,
+        "anesthesia_code_count": 0.0,
+        "emergency_code_count": 1.0,
+        "zip_region_multiplier": 1.12
+      }
+    }
+  ],
+  "error_by_scenario": {
+    "moderate_overcharge": {
+      "total": 56,
+      "errors": 0,
+      "error_rate": 0.0
+    },
+    "lab_bill": {
+      "total": 60,
+      "errors": 0,
+      "error_rate": 0.0
+    },
+    "duplicate": {
+      "total": 48,
+      "errors": 0,
+      "error_rate": 0.0
+    },
+    "missing_rate": {
+      "total": 54,
+      "errors": 0,
+      "error_rate": 0.0
+    },
+    "mixed": {
+      "total": 45,
+      "errors": 0,
+      "error_rate": 0.0
+    },
+    "severe_overcharge": {
+      "total": 50,
+      "errors": 0,
+      "error_rate": 0.0
+    },
+    "high_acuity": {
+      "total": 51,
+      "errors": 2,
+      "error_rate": 0.0392
+    },
+    "normal": {
+      "total": 43,
+      "errors": 0,
+      "error_rate": 0.0
+    },
+    "anesthesia_bill": {
+      "total": 43,
+      "errors": 0,
+      "error_rate": 0.0
+    }
+  },
+  "edge_case_analysis": {
+    "num_edge_cases": 151,
+    "edge_case_accuracy": 1.0,
+    "examples": [
+      {
+        "index": 2,
+        "predicted": "MEDIUM_RISK",
+        "actual": "MEDIUM_RISK",
+        "correct": true,
+        "bill_to_benchmark_ratio": 1.5,
+        "max_line_ratio": 1.51,
+        "scenario": "duplicate"
+      },
+      {
+        "index": 3,
+        "predicted": "MEDIUM_RISK",
+        "actual": "MEDIUM_RISK",
+        "correct": true,
+        "bill_to_benchmark_ratio": 1.37,
+        "max_line_ratio": 1.78,
+        "scenario": "duplicate"
+      },
+      {
+        "index": 4,
+        "predicted": "MEDIUM_RISK",
+        "actual": "MEDIUM_RISK",
+        "correct": true,
+        "bill_to_benchmark_ratio": 1.8,
+        "max_line_ratio": 1.7,
+        "scenario": "missing_rate"
+      },
+      {
+        "index": 7,
+        "predicted": "MEDIUM_RISK",
+        "actual": "MEDIUM_RISK",
+        "correct": true,
+        "bill_to_benchmark_ratio": 1.16,
+        "max_line_ratio": 1.73,
+        "scenario": "missing_rate"
+      },
+      {
+        "index": 8,
+        "predicted": "MEDIUM_RISK",
+        "actual": "MEDIUM_RISK",
+        "correct": true,
+        "bill_to_benchmark_ratio": 1.78,
+        "max_line_ratio": 1.66,
+        "scenario": "missing_rate"
+      },
+      {
+        "index": 10,
+        "predicted": "HIGH_RISK",
+        "actual": "HIGH_RISK",
+        "correct": true,
+        "bill_to_benchmark_ratio": 4.89,
+        "max_line_ratio": 8.58,
+        "scenario": "severe_overcharge"
+      },
+      {
+        "index": 11,
+        "predicted": "MEDIUM_RISK",
+        "actual": "MEDIUM_RISK",
+        "correct": true,
+        "bill_to_benchmark_ratio": 1.39,
+        "max_line_ratio": 1.76,
+        "scenario": "duplicate"
+      },
+      {
+        "index": 13,
+        "predicted": "HIGH_RISK",
+        "actual": "HIGH_RISK",
+        "correct": true,
+        "bill_to_benchmark_ratio": 7.58,
+        "max_line_ratio": 8.55,
+        "scenario": "severe_overcharge"
+      },
+      {
+        "index": 17,
+        "predicted": "MEDIUM_RISK",
+        "actual": "MEDIUM_RISK",
+        "correct": true,
+        "bill_to_benchmark_ratio": 1.29,
+        "max_line_ratio": 1.43,
+        "scenario": "high_acuity"
+      },
+      {
+        "index": 19,
+        "predicted": "HIGH_RISK",
+        "actual": "HIGH_RISK",
+        "correct": true,
+        "bill_to_benchmark_ratio": 1.4,
+        "max_line_ratio": 1.48,
+        "scenario": "mixed"
+      }
+    ]
+  },
+  "plots": [
+    "eval/plots/confusion_matrix.png",
+    "eval/plots/error_distribution.png"
+  ]
+}
