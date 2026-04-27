@@ -1,21 +1,21 @@
-"""Deploy the Medical Billing Assistant to HuggingFace Spaces.
+"""Deploy the Medical Billing Assistant to Hugging Face Spaces.
 
 Usage:
-    1. hf auth login  (paste your HF write token)
-    2. python deploy_to_hf.py --space-id YOUR_USERNAME/medical-billing-assistant
-    3. Set OPENAI_API_KEY secret in the Space settings UI:
+    1. pip install huggingface_hub
+    2. hf auth login  (paste your HF write token)
+    3. python deploy_to_hf.py --space-id YOUR_USERNAME/medical-billing-assistant
+    4. Set OPENAI_API_KEY secret in the Space settings UI:
        https://huggingface.co/spaces/YOUR_USERNAME/medical-billing-assistant/settings
 """
 
 import argparse
 import shutil
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
 try:
-    from huggingface_hub import HfApi, SpaceHardware
+    from huggingface_hub import HfApi
 except ImportError:
     print("Install huggingface_hub: pip install huggingface_hub")
     sys.exit(1)
@@ -47,10 +47,17 @@ SKIP_PATTERNS = [
     ".venv", "venv", "__pycache__", ".git", ".env", ".env.*",
     "chroma_db", "*.log", ".DS_Store", "*.pyc",
     "Supplements to Support Project Significance",
+    "data/bill images", "data/supplemental info",
+    "docs", "notebooks", "videos",
     "deploy_to_hf.py", "final-project-class-instructions.md",
     "SELF_ASSESSMENT_DRAFT.md", "project-planning.md",
     "Plan.md", "Data-Sources.md",
 ]
+
+SPACE_EXCLUDED_REQUIREMENTS = {
+    "sentence-transformers",
+    "matplotlib",
+}
 
 
 def should_skip(path: Path, root: Path) -> bool:
@@ -66,6 +73,7 @@ def should_skip(path: Path, root: Path) -> bool:
 
 
 def copy_tree(src: Path, dst: Path):
+    """Copy deployable project files into the temporary Space folder."""
     for item in sorted(src.iterdir()):
         if should_skip(item, ROOT):
             continue
@@ -75,6 +83,22 @@ def copy_tree(src: Path, dst: Path):
             copy_tree(item, target)
         else:
             shutil.copy2(item, target)
+
+
+def write_space_requirements(staging: Path):
+    """Keep the hosted app lightweight by excluding optional eval-only packages."""
+    req_path = staging / "requirements.txt"
+    if not req_path.exists():
+        return
+
+    lines = []
+    for line in req_path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        package = stripped.split(">=")[0].split("==")[0].strip().lower()
+        if package in SPACE_EXCLUDED_REQUIREMENTS:
+            continue
+        lines.append(line)
+    req_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
 
 def main():
@@ -103,6 +127,7 @@ def main():
 
         print("Copying files to staging directory ...")
         copy_tree(ROOT, staging)
+        write_space_requirements(staging)
 
         readme_path = staging / "README.md"
         original_readme = readme_path.read_text() if readme_path.exists() else ""

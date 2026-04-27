@@ -84,16 +84,45 @@ data/sample_bill.txt
 ```bash
 python eval/evaluate_rules.py
 python eval/evaluate_risk_model.py
+python eval/error_analysis.py
+python eval/rag_comparison.py
 ```
 
-The script rebuilds the local index, evaluates synthetic bills through the production deterministic analysis path, checks sampled index lookups against the CSV, and writes updated metrics to:
+These scripts rebuild or reuse local artifacts, evaluate synthetic bills through the production deterministic analysis path, check sampled index lookups against the CSV, train and evaluate the risk model, compare retrieval strategies, and write updated metrics to:
 
 ```text
 eval/results.json
 eval/risk_model_results.json
+eval/error_analysis_results.json
+eval/rag_comparison_results.json
 ```
 
 `evaluate_risk_model.py` trains and compares a majority baseline, logistic regression model, and random forest bill-risk classifier, then writes `models/risk_model.joblib`.
+
+To run the live prompt comparison, use a configured API key:
+
+```bash
+python eval/prompt_comparison.py --live
+```
+
+This writes `eval/prompt_comparison_results.json`.
+
+## 9. Deploy To Hugging Face Spaces
+
+The app is already deployed publicly at:
+
+```text
+https://huggingface.co/spaces/paulina-vvedenskaya/medical-billing-assistant
+```
+
+To redeploy:
+
+```bash
+hf auth login
+python deploy_to_hf.py --space-id paulina-vvedenskaya/medical-billing-assistant
+```
+
+In the Space settings, set `GRADIO_SERVER_NAME=0.0.0.0` as a variable and set `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_MODEL` as secrets/variables as appropriate for your OpenAI-compatible endpoint.
 
 ## Troubleshooting
 

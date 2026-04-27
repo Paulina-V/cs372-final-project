@@ -1,4 +1,7 @@
-"""Shared OpenAI-compatible LLM client utilities."""
+"""Shared OpenAI-compatible LLM client utilities.
+
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
+"""
 
 from openai import OpenAI
 
@@ -33,7 +36,11 @@ def user_facing_model_error(exc: Exception) -> str:
     message = str(exc).lower()
     if "incorrect api key" in message or "invalid_api_key" in message or "401" in message:
         return "LLM API key is invalid or still set to the placeholder value. Update `.env` and restart the app."
-    if "openai_api_key is not set" in message or "api_key" in message and "not set" in message:
+    if (
+        "openai_api_key is not set" in message
+        or ("api_key" in message and "not set" in message)
+        or ("api key" in message and "not set" in message)
+    ):
         return "OPENAI_API_KEY is not set. Add your real key to `.env` and restart the app."
     if "base_url" in message or "connection" in message:
         return "Could not reach the configured LLM endpoint. Check OPENAI_BASE_URL, network access, and model settings."

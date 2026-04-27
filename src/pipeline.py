@@ -1,7 +1,11 @@
 """
 Main pipeline: PDF → Extract → Codes → Analysis → Explanation
 Chains all components together for end-to-end bill analysis.
+
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
 """
+
+import logging
 
 from src.pdf_extract import extract_text
 from src.code_extract import extract_codes
@@ -11,10 +15,12 @@ from src.llm import user_facing_model_error
 from src.risk_model import predict_bill_risk
 
 
+logger = logging.getLogger(__name__)
+
+
 def analyze_bill(file_path: str, zip_code: str | None = None) -> dict:
     """Run the full analysis pipeline on a medical bill."""
-    # Step 1: Extract raw text from PDF/image
-    print("Step 1: Extracting text from bill...")
+    logger.info("Step 1: Extracting text from bill")
     try:
         raw_text = extract_text(file_path)
     except Exception as exc:
@@ -29,8 +35,7 @@ def analyze_bill(file_path: str, zip_code: str | None = None) -> dict:
             "raw_text": raw_text,
         }
 
-    # Step 2: Extract CPT/ICD codes and line items via LLM
-    print("Step 2: Extracting billing codes...")
+    logger.info("Step 2: Extracting billing codes")
     try:
         bill_data = extract_codes(raw_text)
     except Exception as exc:
@@ -54,8 +59,7 @@ def analyze_bill(file_path: str, zip_code: str | None = None) -> dict:
             "bill_data": bill_data,
         }
 
-    # Step 3: Compare against Medicare rates + run anomaly checks
-    print("Step 3: Analyzing charges...")
+    logger.info("Step 3: Analyzing charges")
     analysis = run_all_checks(line_items)
     analysis["patient_name"] = bill_data.get("patient_name")
     analysis["provider_name"] = bill_data.get("provider_name")
@@ -68,8 +72,7 @@ def analyze_bill(file_path: str, zip_code: str | None = None) -> dict:
         analysis["risk_model_error"] = f"Risk model unavailable: {exc}"
     analysis["raw_text"] = raw_text
 
-    # Step 4: Generate plain-English explanation
-    print("Step 4: Generating explanation...")
+    logger.info("Step 4: Generating explanation")
     try:
         explanation = generate_explanation(analysis)
     except Exception as exc:

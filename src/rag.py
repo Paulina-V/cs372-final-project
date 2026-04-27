@@ -5,9 +5,12 @@ Supports two embedding strategies:
   2. Sentence-transformer semantic embeddings (higher retrieval quality)
 
 Use RAG_EMBEDDING_TYPE=semantic in .env to enable semantic embeddings.
+
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
 """
 
 import hashlib
+import logging
 import math
 import os
 import re
@@ -20,6 +23,7 @@ from src.config import CHROMA_PERSIST_DIR, CMS_DATA_PATH
 
 EMBEDDING_DIMENSION = 128
 RAG_EMBEDDING_TYPE = os.getenv("RAG_EMBEDDING_TYPE", "hash")
+logger = logging.getLogger(__name__)
 
 
 class DeterministicEmbeddingFunction:
@@ -131,8 +135,8 @@ def build_index(csv_path: str = CMS_DATA_PATH, embedding_type: str | None = None
 
     try:
         client.delete_collection(col_name)
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("Collection %s did not need deletion before rebuild: %s", col_name, exc)
 
     collection = client.create_collection(
         name=col_name,
@@ -148,7 +152,8 @@ def build_index(csv_path: str = CMS_DATA_PATH, embedding_type: str | None = None
             ids=ids[start:end],
         )
 
-    print(f"Indexed {len(documents)} records into ChromaDB ({ef.name() if hasattr(ef, 'name') and callable(ef.name) else type(ef).__name__}).")
+    embedding_name = ef.name() if hasattr(ef, "name") and callable(ef.name) else type(ef).__name__
+    logger.info("Indexed %d records into ChromaDB (%s).", len(documents), embedding_name)
     return collection
 
 

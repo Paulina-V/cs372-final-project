@@ -4,6 +4,8 @@ Upload a medical bill, get a plain-English explanation, and generate a dispute l
 
 Production considerations: structured logging, in-memory rate limiting, and
 graceful error handling for all user-facing operations.
+
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
 """
 
 import logging
@@ -18,13 +20,22 @@ from src.llm import user_facing_model_error
 from src.risk_model import format_risk_summary
 
 
+def _logging_handlers() -> list[logging.Handler]:
+    """Return logging handlers that are safe for local and hosted runs."""
+    handlers: list[logging.Handler] = [logging.StreamHandler()]
+    if os.getenv("ENABLE_FILE_LOGGING", "true").lower() == "true":
+        try:
+            handlers.append(logging.FileHandler("app.log", encoding="utf-8"))
+        except OSError:
+            # Hosted filesystems may be read-only; console logging is enough there.
+            pass
+    return handlers
+
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("app.log", encoding="utf-8"),
-    ],
+    handlers=_logging_handlers(),
 )
 logger = logging.getLogger("medical_billing_assistant")
 
@@ -194,6 +205,14 @@ def _format_analysis_output(result: dict) -> str:
     return "\n".join(status_lines) + "\n\n---\n\n" + explanation
 
 
+def _chatbot(label: str):
+    """Use message-style chat where supported while staying compatible with Gradio 6."""
+    try:
+        return gr.Chatbot(label=label, type="messages")
+    except TypeError:
+        return gr.Chatbot(label=label)
+
+
 def build_app():
     with gr.Blocks(
         title="Medical Billing Assistant",
@@ -225,7 +244,7 @@ def build_app():
                     with gr.Column(scale=2):
                         explanation_output = gr.Markdown(label="Bill Explanation")
 
-                chatbot = gr.Chatbot(label="Ask questions about your bill")
+                chatbot = _chatbot(label="Ask questions about your bill")
                 msg_input = gr.Textbox(
                     placeholder="Ask a follow-up question (e.g., 'What is CPT 99213?' or 'Is the ER charge reasonable?')",
                     label="Your Question",
@@ -292,10 +311,25 @@ def build_app():
     return app
 
 
+def launch_app(app: gr.Blocks, share: bool, server_name: str, server_port: int) -> None:
+    """Launch with a soft theme when the installed Gradio version supports it."""
+    try:
+        app.launch(
+            share=share,
+            server_name=server_name,
+            server_port=server_port,
+            theme=gr.themes.Soft(),
+        )
+    except TypeError as exc:
+        if "theme" not in str(exc):
+            raise
+        app.launch(share=share, server_name=server_name, server_port=server_port)
+
+
 if __name__ == "__main__":
     logger.info("Starting Medical Billing Assistant application")
     app = build_app()
     share = os.getenv("GRADIO_SHARE", "false").lower() == "true"
     server_name = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
     server_port = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
-    app.launch(share=share, server_name=server_name, server_port=server_port, theme=gr.themes.Soft())
+    launch_app(app, share=share, server_name=server_name, server_port=server_port)

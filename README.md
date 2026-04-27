@@ -82,6 +82,10 @@ python app.py
 
 Then open the Gradio URL and upload `data/sample_bill.txt` for a reliable demo.
 
+## Hosted Demo
+
+The app is deployed publicly on Hugging Face Spaces: [Medical Billing Assistant](https://huggingface.co/spaces/paulina-vvedenskaya/medical-billing-assistant).
+
 ## Evaluation
 
 The deterministic billing checks were evaluated on ten synthetic text bills covering clean bills, overcharges, duplicate charges, high-acuity code review, unknown codes, lab-heavy bills, anesthesia reference codes, date-sensitive duplicates, and mixed multi-flag cases. The evaluation builds the local ChromaDB index and calls the same production `run_all_checks()` path used by the app.
@@ -98,7 +102,7 @@ Current results from `eval/results.json`:
 - Precision: 1.000
 - Recall: 1.000
 - F1: 1.000
-- Average deterministic-check latency: about 23.15 ms per case
+- Average deterministic-check latency: about 15.67 ms per case
 - Index parity check: sampled Chroma lookups matched the source CSV fees
 
 This evaluation isolates the deterministic extraction-free analysis layer. The end-to-end app also depends on API availability, OCR quality, and the quality of LLM extraction/explanation.
@@ -113,7 +117,8 @@ Current results from `eval/risk_model_results.json`:
 - Hyperparameter search: 30 random-forest configurations with 5-fold cross-validation; best CV macro F1: 0.9985
 - Learning curve: final train macro F1 1.0000 and validation macro F1 0.9992; plot at `eval/plots/learning_curve.png`
 - Gradient boosting training curve: final test accuracy 0.9911; plot at `eval/plots/training_curve_gb.png`
-- Regularization comparison across 6 configurations: logistic regression without vs. with L2 penalty (test macro F1 0.9932 vs. 0.9887, train-test gap 0.0068 vs. 0.0038), gradient boosting without vs. with early stopping (test macro F1 0.9977 vs. 0.9909, 300 vs. 73 estimators), random forest without vs. with depth limits (both test macro F1 0.9955); plot at `eval/plots/regularization_comparison.png`- Majority baseline macro F1: 0.172
+- Regularization comparison across 6 configurations: logistic regression without vs. with L2 penalty (test macro F1 0.9932 vs. 0.9887, train-test gap 0.0068 vs. 0.0038), gradient boosting without vs. with early stopping (test macro F1 0.9977 vs. 0.9909, 300 vs. 73 estimators), random forest without vs. with depth limits (both test macro F1 0.9955); plot at `eval/plots/regularization_comparison.png`
+- Majority baseline macro F1: 0.172
 - Logistic regression macro F1: 0.989
 - Tuned random forest macro F1: 0.995
 - Risk labels: `LOW_RISK`, `MEDIUM_RISK`, `HIGH_RISK`
@@ -138,10 +143,23 @@ Current live prompt comparison from `eval/prompt_comparison_results.json`:
 - All three prompts had 0.667 average code precision because the evaluator assigns 0.0 precision to the no-code messy bill when no CPT/HCPCS codes are extracted
 - Average latency: minimal 1,977 ms, structured 3,535 ms, chain-of-thought 3,408 ms
 
+## Rubric Evidence Map
+
+| Rubric area | Evidence |
+| --- | --- |
+| Modular code design | `src/pipeline.py` orchestrates focused modules for extraction, RAG lookup, deterministic checks, risk prediction, explanation, chat, and dispute letters. |
+| Train/test split, baselines, hyperparameter tuning, regularization, and learning curves | `scripts/train_risk_model.py`, `eval/risk_model_results.json`, and `eval/plots/` include stratified 75/25 split, majority baseline, logistic regression, tuned random forest, gradient boosting, learning curves, and regularization comparisons. |
+| Feature engineering | `src/features.py` converts bill analyses into ratios, flag counts, CPT/HCPCS category features, unmatched-code features, and ZIP-region features. |
+| Prompt engineering with evaluation | `eval/prompt_comparison.py` and `eval/prompt_comparison_results.json` compare minimal, structured, and chain-of-thought extraction prompts. |
+| LLM API integration and multi-turn chat | `src/llm.py`, `src/code_extract.py`, `src/explain.py`, `src/dispute.py`, and `app.py` integrate OpenAI-compatible calls for extraction, explanation, chat, and dispute generation. |
+| Custom RAG pipeline | `src/rag.py` builds a Chroma index over CMS-style fee schedule rows and `eval/rag_comparison.py` compares hash and sentence-transformer embeddings. |
+| Web deployment and production considerations | The Hugging Face Space linked above runs the app publicly; `app.py` includes rate limiting, logging, and user-facing error handling. |
+| Evaluation and error analysis | `eval/evaluate_rules.py`, `eval/error_analysis.py`, and result JSON files report precision/recall/F1, latency, index parity, misclassified examples, and edge-case behavior. |
+
 ## Video Links
 
-- Demo video: TODO
-- Technical walkthrough: TODO
+- Demo video: TODO after recording; use `VIDEO_SCRIPTS.md` for the suggested nontechnical walkthrough.
+- Technical walkthrough: TODO after recording; use `VIDEO_SCRIPTS.md` for the suggested code and ML explanation.
 
 ## Limitations
 
@@ -156,4 +174,4 @@ Current live prompt comparison from `eval/prompt_comparison_results.json`:
 
 ## Individual Contributions
 
-Paulina Vargas designed and implemented the project, including the Gradio app, bill extraction pipeline, Medicare-rate retrieval, anomaly checks, trained bill-risk classifier, LLM explanation/chat flow, dispute-letter generation, evaluation harness, and documentation.
+Solo project. Paulina Vargas designed and implemented the project, including the Gradio app, bill extraction pipeline, Medicare-rate retrieval, anomaly checks, trained bill-risk classifier, LLM explanation/chat flow, dispute-letter generation, evaluation harness, deployment workflow, and documentation.

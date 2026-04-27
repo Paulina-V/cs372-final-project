@@ -30,6 +30,7 @@ AI coding assistance was used to accelerate implementation, debugging, and docum
 - Hardening LLM extraction with schema normalization, fallback metadata, and clearer prompts.
 - Expanding the CMS-style fee-schedule conversion script and documenting data limitations.
 - Adding the weakly supervised synthetic-data generator, feature engineering, trained risk classifier, and model evaluation scripts.
+- Adding the Hugging Face Spaces deployment helper and compatibility fixes for hosted Gradio versions.
 - Drafting documentation files including `README.md`, `SETUP.md`, and this attribution document.
 
 Human judgment was used to choose the project goal, decide which rubric items to target, validate the design, review generated code, and keep the implementation aligned with the medical billing assistant use case.
@@ -46,8 +47,12 @@ Human judgment was used to choose the project goal, decide which rubric items to
 - `app.py`
 - `eval/evaluate_rules.py`
 - `eval/evaluate_risk_model.py`
+- `eval/rag_comparison.py`
+- `eval/prompt_comparison.py`
+- `eval/error_analysis.py`
 - `scripts/download_cms_data.py`
 - `scripts/train_risk_model.py`
+- `deploy_to_hf.py`
 - `README.md`
 - `SETUP.md`
 - `ATTRIBUTION.md`
