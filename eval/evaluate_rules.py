@@ -4,6 +4,8 @@ This script is intentionally API-free so evaluation can run without a Duke GPT
 key. It parses clean synthetic bills, builds the local Chroma index from the
 CMS-style fee schedule CSV, and evaluates the same deterministic analysis path
 used by the app.
+
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
 """
 
 from __future__ import annotations

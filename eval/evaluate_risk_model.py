@@ -1,4 +1,7 @@
-"""Run and print the trained bill risk model evaluation."""
+"""Run and print the trained bill risk model evaluation.
+
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
+"""
 
 from __future__ import annotations
 

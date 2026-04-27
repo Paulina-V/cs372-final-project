@@ -1,6 +1,8 @@
 """
 Extract CPT/ICD codes and line items from raw bill text using an LLM.
 Returns structured JSON with billing details.
+
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
 """
 
 import json

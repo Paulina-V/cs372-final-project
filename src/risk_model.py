@@ -1,4 +1,7 @@
-"""Train and run a supervised bill risk classifier."""
+"""Train and run a supervised bill risk classifier.
+
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
+"""
 
 from __future__ import annotations
 

@@ -2,6 +2,8 @@
 
 Includes hyperparameter tuning via RandomizedSearchCV, learning curve analysis,
 regularization comparison, and training curve visualization.
+
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
 """
 
 from __future__ import annotations

@@ -2,7 +2,7 @@
 
 ## Project Author
 
-Paulina Vargas.
+Paulina Vvedenskaya.
 
 ## Data Sources
 
@@ -13,11 +13,13 @@ Paulina Vargas.
 
 - Gradio for the web application interface.
 - OpenAI Python SDK for Duke GPT / OpenAI-compatible language model calls.
-- ChromaDB plus a deterministic local embedding function for retrieval over fee-schedule records.
+- ChromaDB plus deterministic hash embeddings and sentence-transformer embeddings for retrieval over fee-schedule records.
 - scikit-learn and joblib for the trained bill-risk classifier and model persistence.
-- pypdf, Pillow, pytesseract, and pdf2image for document extraction and OCR support.
+- pypdf, Pillow, pytesseract, pdf2image, Poppler, and Tesseract OCR for document extraction and OCR support.
 - pandas and numpy for data handling.
+- matplotlib for evaluation plots.
 - python-dotenv for local environment configuration.
+- huggingface_hub for Hugging Face Spaces deployment.
 
 ## AI Development Tool Use
 
@@ -30,14 +32,14 @@ AI coding assistance was used to accelerate implementation, debugging, and docum
 - Hardening LLM extraction with schema normalization, fallback metadata, and clearer prompts.
 - Expanding the CMS-style fee-schedule conversion script and documenting data limitations.
 - Adding the weakly supervised synthetic-data generator, feature engineering, trained risk classifier, and model evaluation scripts.
-- Adding the Hugging Face Spaces deployment helper and compatibility fixes for hosted Gradio versions.
-- Drafting documentation files including `README.md`, `SETUP.md`, and this attribution document.
+- Adding the hash-vs-semantic embedding selector, loading indicators, Hugging Face Spaces deployment helper, and compatibility fixes for hosted Gradio versions.
+- Drafting documentation files including `README.md`, `SETUP.md`, `VIDEO_SCRIPTS.md`, `SELF_ASSESSMENT.md`, and this attribution document.
 
 Human judgment was used to choose the project goal, decide which rubric items to target, validate the design, review generated code, and keep the implementation aligned with the medical billing assistant use case.
 
 ## Known AI-Assisted Files
 
-- `src/llm.py`
+
 - `src/code_extract.py`
 - `src/pipeline.py`
 - `src/analysis.py`
@@ -45,16 +47,19 @@ Human judgment was used to choose the project goal, decide which rubric items to
 - `src/risk_model.py`
 - `src/pdf_extract.py`
 - `app.py`
+- `scripts/train_risk_model.py`
+- `scripts/download_cms_data.py`
 - `eval/evaluate_rules.py`
 - `eval/evaluate_risk_model.py`
 - `eval/rag_comparison.py`
 - `eval/prompt_comparison.py`
 - `eval/error_analysis.py`
-- `scripts/download_cms_data.py`
-- `scripts/train_risk_model.py`
 - `deploy_to_hf.py`
+- `packages.txt`
 - `README.md`
 - `SETUP.md`
+- `VIDEO_SCRIPTS.md`
+- `SELF_ASSESSMENT.md`
 - `ATTRIBUTION.md`
 
 ## Secret Handling

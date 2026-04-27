@@ -47,7 +47,7 @@ Use this as the basis for the Gradescope self-assessment. Select at most 15 Mach
     Evidence: public Hugging Face Space linked in `README.md`; Gradio UI in `app.py`.
 
 15. **Implemented production-grade deployment considerations (10 pts)**  
-    Evidence: rate limiting, structured logging, hosted deployment support, system dependencies in `packages.txt`, and user-facing error handling in `app.py`; deployment helper in `deploy_to_hf.py`.
+    Evidence: rate limiting, structured logging, loading indicators, hosted deployment support, system dependencies in `packages.txt`, and user-facing error handling in `app.py`; deployment helper in `deploy_to_hf.py`.
 
 ## Following Directions
 

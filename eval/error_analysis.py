@@ -2,6 +2,8 @@
 
 Generates a report of misclassified examples, analyzes which scenarios and
 feature ranges are most challenging, and tests edge-case distributions.
+
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
 """
 
 from __future__ import annotations

@@ -1,4 +1,7 @@
-"""Feature engineering for trained bill risk classification."""
+"""Feature engineering for trained bill risk classification.
+
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
+"""
 
 from __future__ import annotations
 

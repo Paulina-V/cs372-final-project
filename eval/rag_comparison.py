@@ -2,6 +2,8 @@
 
 Tests both embedding strategies on a set of code lookups and description-based
 queries, measuring exact match rate and retrieval relevance.
+
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
 """
 
 from __future__ import annotations

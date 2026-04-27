@@ -1,0 +1,32 @@
+DUKE UNIVERSITY HOSPITAL
+BILLING DEPARTMENT
+2301 Erwin Road, Durham, NC 27710
+
+PATIENT STATEMENT
+
+Patient: Jane Smith
+Account #: DUH-2026-44521
+Date of Service: 03/15/2026
+Insurance: Blue Cross Blue Shield NC
+
+---------------------------------------------------------------------------
+SERVICE DESCRIPTION                  CPT CODE    AMOUNT
+---------------------------------------------------------------------------
+Emergency Dept Visit - High Severity   99285     $2,850.00
+Chest X-Ray, 2 views                   71046       $385.00
+Complete Blood Count (CBC)             85025       $187.00
+Comprehensive Metabolic Panel          80053       $243.00
+IV Infusion - Hydration, 1st hour      96360       $892.00
+IV Push - Single Drug                  96374       $567.00
+ECG - 12 Lead                          93000       $340.00
+Pulse Oximetry                         94760        $85.00
+Emergency Dept Visit - High Severity   99285     $2,850.00
+---------------------------------------------------------------------------
+
+SUBTOTAL:                                        $8,399.00
+Insurance Adjustment:                            -$2,100.00
+PATIENT RESPONSIBILITY:                           $6,299.00
+
+Payment Due Within 30 Days
+
+Questions? Call (919) 684-8111

@@ -1,4 +1,7 @@
-"""Compare billed amounts against benchmark rates and flag review signals."""
+"""Compare billed amounts against benchmark rates and flag review signals.
+
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
+"""
 
 from src.rag import get_collection, query_rate
 from src.config import OVERCHARGE_THRESHOLD

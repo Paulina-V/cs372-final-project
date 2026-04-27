@@ -1,6 +1,8 @@
 """
 Module for extracting text from medical bill PDFs and images.
 Supports text-based PDFs, images, and plain text demo bills.
+
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
 """
 
 from pypdf import PdfReader

@@ -3,6 +3,8 @@
 Tests three prompt strategies on synthetic bill text and compares extraction
 quality (field coverage, code accuracy, structural validity).
 
+AI-assisted portions of this file are documented in ATTRIBUTION.md.
+
 Requires OPENAI_API_KEY to be set for live evaluation. Can also load
 pre-computed results from eval/prompt_comparison_results.json.
 """
