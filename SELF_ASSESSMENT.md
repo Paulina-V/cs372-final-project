@@ -55,7 +55,7 @@ Use this as the basis for the Gradescope self-assessment. Select at most 15 Mach
 - `ATTRIBUTION.md` exists with data, library, and AI-assistance attributions.
 - `requirements.txt` is included.
 - `README.md` includes What It Does, Quick Start, Hosted Demo, Evaluation, Video Links, Limitations, and Individual Contributions.
-- Demo and technical walkthrough video links still need to be pasted into `README.md`.
+- Demo and technical walkthrough video links are included in `README.md`.
 
 ## Project Cohesion
 
