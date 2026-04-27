@@ -29,7 +29,7 @@ Use this as the basis for the Gradescope self-assessment. Select at most 15 Mach
    Evidence: `eval/prompt_comparison.py` compares minimal, structured, and chain-of-thought prompts; results in `eval/prompt_comparison_results.json`.
 
 9. **Used sentence embeddings for semantic similarity or retrieval (5 pts)**  
-   Evidence: `src/rag.py` supports sentence-transformer embeddings; comparison in `eval/rag_comparison.py` and `eval/rag_comparison_results.json`.
+   Evidence: `src/rag.py` supports sentence-transformer embeddings; `app.py` exposes hash vs. semantic retrieval in the deployed UI; comparison in `eval/rag_comparison.py` and `eval/rag_comparison_results.json`.
 
 10. **Made API calls to a state-of-the-art model with meaningful integration (5 pts)**  
     Evidence: `src/llm.py`, `src/code_extract.py`, `src/explain.py`, and `src/dispute.py` use an OpenAI-compatible LLM for extraction, explanation, chat, and dispute drafting.
@@ -38,7 +38,7 @@ Use this as the basis for the Gradescope self-assessment. Select at most 15 Mach
     Evidence: `app.py` stores chat history and `src/explain.py` injects bill-analysis context into follow-up chat.
 
 12. **Developed a retrieval-augmented generation system with custom retrieval pipeline (10 pts)**  
-    Evidence: `src/rag.py`, `src/analysis.py`, and `eval/rag_comparison.py`; custom CMS index, metadata-filtered code lookup, and embedding comparison.
+    Evidence: `src/rag.py`, `src/analysis.py`, and `eval/rag_comparison.py`; custom CMS index, metadata-filtered code lookup, deployed embedding-mode selector, and embedding comparison.
 
 13. **Built multi-stage ML pipeline (7 pts)**  
     Evidence: `src/pipeline.py` connects document extraction, LLM parsing, RAG benchmark lookup, deterministic checks, trained risk model, LLM explanation, chat, and dispute generation.
@@ -47,7 +47,7 @@ Use this as the basis for the Gradescope self-assessment. Select at most 15 Mach
     Evidence: public Hugging Face Space linked in `README.md`; Gradio UI in `app.py`.
 
 15. **Implemented production-grade deployment considerations (10 pts)**  
-    Evidence: rate limiting, structured logging, hosted deployment support, and user-facing error handling in `app.py`; deployment helper in `deploy_to_hf.py`.
+    Evidence: rate limiting, structured logging, hosted deployment support, system dependencies in `packages.txt`, and user-facing error handling in `app.py`; deployment helper in `deploy_to_hf.py`.
 
 ## Following Directions
 

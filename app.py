@@ -66,7 +66,7 @@ class RateLimiter:
 rate_limiter = RateLimiter(max_requests=20, window_seconds=60)
 
 
-def process_bill(file, zip_code):
+def process_bill(file, zip_code, embedding_type):
     """Handle bill upload and run the full pipeline."""
     if file is None:
         return "Please upload a medical bill (PDF, image, or text file).", [], {}
@@ -75,11 +75,16 @@ def process_bill(file, zip_code):
         logger.warning("Rate limit exceeded for bill analysis request")
         return "Rate limit exceeded. Please wait a moment before trying again.", [], {}
 
-    logger.info("Starting bill analysis for file: %s (ZIP: %s)", file.name, zip_code or "none")
+    logger.info(
+        "Starting bill analysis for file: %s (ZIP: %s, embedding: %s)",
+        file.name,
+        zip_code or "none",
+        embedding_type or "hash",
+    )
     start = time.time()
 
     try:
-        result = analyze_bill(file.name, zip_code=zip_code)
+        result = analyze_bill(file.name, zip_code=zip_code, embedding_type=embedding_type)
     except Exception as exc:
         logger.exception("Unexpected error during bill analysis")
         return f"Unexpected error while analyzing bill: {exc}", [], {}
@@ -187,12 +192,15 @@ def _format_analysis_output(result: dict) -> str:
     status_lines = [
         "### Pipeline Status",
         f"- Extraction method: `{result.get('extraction_method', 'unknown')}`",
+        f"- RAG embedding mode: `{result.get('embedding_type', 'hash')}`",
         f"- Line items analyzed: `{len(result.get('rated_items', []))}`",
         f"- Fee schedule matches: `{matched}`",
         f"- Unmatched codes: `{unmatched}`",
         f"- Flags found: `{result.get('num_flags', 0)}`",
     ]
 
+    if result.get("embedding_warning"):
+        status_lines.append(f"- Embedding warning: {result['embedding_warning']}")
     if result.get("extraction_warning"):
         status_lines.append(f"- Extraction warning: {result['extraction_warning']}")
     if result.get("zip_code"):
@@ -211,6 +219,71 @@ def _chatbot(label: str):
         return gr.Chatbot(label=label, type="messages")
     except TypeError:
         return gr.Chatbot(label=label)
+
+
+def _status_html(message: str) -> str:
+    """Return a compact loading indicator for long-running model calls."""
+    return f"""
+    <style>
+      @keyframes mba-spin {{
+        0% {{ transform: rotate(0deg); }}
+        100% {{ transform: rotate(360deg); }}
+      }}
+      .mba-status {{
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.75rem 0.9rem;
+        margin: 0.5rem 0;
+        border: 1px solid #dbeafe;
+        border-radius: 0.75rem;
+        background: #eff6ff;
+        color: #1e3a8a;
+        font-weight: 600;
+      }}
+      .mba-spinner {{
+        width: 1rem;
+        height: 1rem;
+        border: 3px solid #bfdbfe;
+        border-top-color: #2563eb;
+        border-radius: 50%;
+        animation: mba-spin 0.8s linear infinite;
+      }}
+    </style>
+    <div class="mba-status">
+      <span class="mba-spinner"></span>
+      <span>{message}</span>
+    </div>
+    """
+
+
+def show_analysis_status():
+    """Show progress while the bill analysis pipeline is running."""
+    return gr.update(
+        value=_status_html("Analyzing your bill. This can take a moment while the model extracts codes and checks benchmarks..."),
+        visible=True,
+    )
+
+
+def show_chat_status():
+    """Show progress while the chat model is responding."""
+    return gr.update(
+        value=_status_html("Thinking through your question using the current bill analysis..."),
+        visible=True,
+    )
+
+
+def show_dispute_status():
+    """Show progress while the dispute letter is generated."""
+    return gr.update(
+        value=_status_html("Drafting your dispute letter..."),
+        visible=True,
+    )
+
+
+def hide_status():
+    """Hide a progress indicator after a long-running action finishes."""
+    return gr.update(value="", visible=False)
 
 
 def build_app():
@@ -239,26 +312,53 @@ def build_app():
                             label="Patient ZIP Code (optional)",
                             placeholder="e.g., 27708",
                         )
+                        embedding_input = gr.Radio(
+                            choices=[
+                                ("Hash embeddings (fast, reliable default)", "hash"),
+                                ("Semantic embeddings (sentence-transformer)", "semantic"),
+                            ],
+                            value="hash",
+                            label="RAG Embedding Mode",
+                            info="Hash is fastest for the live demo. Semantic can improve description search but may take longer on first use.",
+                        )
                         analyze_btn = gr.Button("Analyze Bill", variant="primary")
 
                     with gr.Column(scale=2):
+                        analysis_status = gr.HTML(visible=False)
                         explanation_output = gr.Markdown(label="Bill Explanation")
 
                 chatbot = _chatbot(label="Ask questions about your bill")
+                chat_status = gr.HTML(visible=False)
                 msg_input = gr.Textbox(
                     placeholder="Ask a follow-up question (e.g., 'What is CPT 99213?' or 'Is the ER charge reasonable?')",
                     label="Your Question",
                 )
 
                 analyze_btn.click(
+                    show_analysis_status,
+                    outputs=[analysis_status],
+                    queue=False,
+                ).then(
                     process_bill,
-                    inputs=[file_input, zip_input],
+                    inputs=[file_input, zip_input, embedding_input],
                     outputs=[explanation_output, chatbot, analysis_state],
+                ).then(
+                    hide_status,
+                    outputs=[analysis_status],
+                    queue=False,
                 )
                 msg_input.submit(
+                    show_chat_status,
+                    outputs=[chat_status],
+                    queue=False,
+                ).then(
                     respond,
                     inputs=[msg_input, chatbot, analysis_state],
                     outputs=[chatbot],
+                ).then(
+                    hide_status,
+                    outputs=[chat_status],
+                    queue=False,
                 ).then(lambda: "", outputs=[msg_input])
 
             with gr.Tab("Dispute Letter"):
@@ -272,12 +372,21 @@ def build_app():
                 address_input = gr.Textbox(label="Mailing Address", lines=3)
                 dispute_all = gr.Checkbox(label="Dispute all flagged charges", value=True)
                 dispute_btn = gr.Button("Generate Dispute Letter", variant="primary")
+                dispute_status = gr.HTML(visible=False)
                 letter_output = gr.Markdown(label="Dispute Letter")
 
                 dispute_btn.click(
+                    show_dispute_status,
+                    outputs=[dispute_status],
+                    queue=False,
+                ).then(
                     generate_dispute,
                     inputs=[name_input, address_input, account_input, dispute_all, analysis_state],
                     outputs=[letter_output],
+                ).then(
+                    hide_status,
+                    outputs=[dispute_status],
+                    queue=False,
                 )
 
             with gr.Tab("About"):
@@ -288,17 +397,19 @@ def build_app():
                     The Medical Billing Assistant helps patients understand and dispute their medical bills.
 
                     **How it works:**
-                    1. Upload a PDF or image of your medical bill
+                    1. Upload a PDF, image, or text version of your medical bill
                     2. Our system extracts the billing codes (CPT/HCPCS) and charges
-                    3. ZIP code context is converted into a coarse regional feature for the trained risk model
-                    4. Each charge is compared against Medicare reimbursement rates
-                    5. Potential issues (overcharges, duplicates, high-acuity review signals) are flagged
-                    6. A trained classifier predicts whether the bill is low, medium, or high risk
-                    7. You get a plain-English explanation and can ask follow-up questions
-                    8. If issues are found, you can generate a dispute letter
+                    3. Choose hash embeddings for speed or semantic embeddings for sentence-transformer retrieval
+                    4. ZIP code context is converted into a coarse regional feature for the trained risk model
+                    5. Each charge is compared against Medicare reimbursement rates
+                    6. Potential issues (overcharges, duplicates, high-acuity review signals) are flagged
+                    7. A trained classifier predicts whether the bill is low, medium, or high risk
+                    8. You get a plain-English explanation and can ask follow-up questions
+                    9. If issues are found, you can generate a dispute letter
 
                     **Data sources:**
-                    - CMS Medicare Physician Fee Schedule (public data from cms.gov)
+                    - CMS-style Medicare Physician Fee Schedule, Clinical Laboratory Fee Schedule,
+                      and anesthesia reference rates prepared for this educational project
 
                     **Disclaimer:** This tool is for educational purposes only and does not constitute
                     legal or financial advice. Always consult with a healthcare billing advocate or

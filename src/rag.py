@@ -171,10 +171,14 @@ def get_collection(embedding_type: str | None = None) -> chromadb.Collection:
         return build_index(CMS_DATA_PATH, embedding_type)
 
 
-def query_rate(code: str, collection: chromadb.Collection = None) -> dict:
+def query_rate(
+    code: str,
+    collection: chromadb.Collection = None,
+    embedding_type: str | None = None,
+) -> dict:
     """Look up the benchmark rate for an exact CPT/HCPCS code."""
     if collection is None:
-        collection = get_collection()
+        collection = get_collection(embedding_type)
 
     results = collection.query(
         query_texts=[f"CPT code {code}"],

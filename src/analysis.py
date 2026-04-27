@@ -1,19 +1,36 @@
 """Compare billed amounts against benchmark rates and flag review signals."""
 
-from src.rag import query_rate
+from src.rag import get_collection, query_rate
 from src.config import OVERCHARGE_THRESHOLD
 
 
-def compare_rates(line_items: list) -> list:
+def compare_rates(line_items: list, embedding_type: str | None = None) -> tuple[list, str | None]:
     """Compare each line item's billed amount against the Medicare rate."""
     results = []
+    lookup_warning = None
+
+    try:
+        collection = get_collection(embedding_type)
+    except Exception as exc:
+        if embedding_type == "semantic":
+            lookup_warning = (
+                f"Semantic embeddings unavailable ({exc}); fell back to hash embeddings."
+            )
+            collection = get_collection("hash")
+            embedding_type = "hash"
+        else:
+            raise
 
     for item in line_items:
         code = item.get("cpt_code")
         billed = item.get("billed_amount", 0) or 0
 
         try:
-            lookup = query_rate(code) if code else {"found": False}
+            lookup = (
+                query_rate(code, collection=collection, embedding_type=embedding_type)
+                if code
+                else {"found": False}
+            )
         except Exception as exc:
             lookup = {
                 "found": False,
@@ -42,7 +59,7 @@ def compare_rates(line_items: list) -> list:
             "rag_error": lookup.get("error"),
         })
 
-    return results
+    return results, lookup_warning
 
 
 def check_duplicates(line_items: list) -> list:
@@ -100,9 +117,9 @@ def check_missing_rates(rated_items: list) -> list:
     return flags
 
 
-def run_all_checks(line_items: list) -> dict:
+def run_all_checks(line_items: list, embedding_type: str | None = None) -> dict:
     """Run rate comparison and all rule-based checks."""
-    rated_items = compare_rates(line_items)
+    rated_items, lookup_warning = compare_rates(line_items, embedding_type)
     duplicate_flags = check_duplicates(line_items)
     upcoding_flags = check_upcoding(line_items)
     missing_rate_flags = check_missing_rates(rated_items)
@@ -120,4 +137,6 @@ def run_all_checks(line_items: list) -> dict:
         "num_flags": len(all_flags),
         "total_billed": sum(i.get("billed_amount", 0) or 0 for i in line_items),
         "total_medicare": sum(i.get("medicare_rate", 0) or 0 for i in rated_items if i.get("medicare_rate")),
+        "embedding_type": embedding_type or "hash",
+        "embedding_warning": lookup_warning,
     }

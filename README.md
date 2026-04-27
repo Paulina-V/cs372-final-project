@@ -20,24 +20,48 @@ CMS patient guidance emphasizes that medical bills should be compared against th
 
 ```mermaid
 flowchart TD
-    uploadBill["User uploads bill"] --> extractText["Extract text from PDF, image, or text"]
-    extractText --> extractCodes["LLM extracts structured line items and CPT/HCPCS codes"]
-    extractCodes --> codeLookup["Use CPT/HCPCS codes to retrieve Medicare benchmarks"]
-    codeLookup --> compareRates["Compare billed charges to benchmark rates"]
-    compareRates --> detectFlags["Flag overcharges, duplicates, missing rates"]
-    compareRates --> riskModel["Trained risk model predicts LOW/MEDIUM/HIGH risk"]
-    detectFlags --> explainBill["LLM explains bill in plain English"]
-    riskModel --> explainBill
-    explainBill --> chat["User asks follow-up questions"]
-    detectFlags --> dispute["Generate dispute letter"]
+    user["Patient or advocate"] --> app["Gradio web app<br/>Upload bill + optional ZIP code + embedding mode"]
+
+    app --> ingest["Text ingestion<br/>TXT, PDF text extraction, image OCR, scanned PDF OCR"]
+    ingest --> llmExtract["LLM structured extraction<br/>patient/provider info, line items, CPT/HCPCS codes, dates, charges"]
+    llmExtract --> normalize["Validation and normalization<br/>clean codes, parse dollar amounts, regex fallback"]
+
+    normalize --> lookup["CPT/HCPCS benchmark lookup<br/>ChromaDB index over CMS-style fee schedule<br/>hash or semantic embeddings"]
+    lookup --> rules["Deterministic billing checks<br/>overcharge ratio, duplicate codes, missing rates, high-acuity review"]
+
+    normalize --> features["Feature engineering<br/>bill totals, benchmark ratios, flag counts, unmatched-code fraction, category counts, ZIP-region feature"]
+    rules --> features
+    features --> risk["Trained scikit-learn risk classifier<br/>LOW / MEDIUM / HIGH"]
+
+    rules --> explanation["Plain-English explanation<br/>review signals and next steps"]
+    risk --> explanation
+    explanation --> chat["Follow-up chat<br/>answers questions using current bill context"]
+    rules --> dispute["Dispute letter draft<br/>patient details + flagged charges + benchmark references"]
+
+    chat --> outputs["User-facing outputs<br/>analysis summary, risk label, chat guidance, dispute letter"]
+    dispute --> outputs
+
+    subgraph eval["Evaluation and validation"]
+        rulesEval["Rule evaluation<br/>precision, recall, F1, latency"]
+        ragEval["RAG comparison<br/>hash vs semantic embeddings"]
+        riskEval["Risk-model evaluation<br/>baselines, tuning, learning curves, error analysis"]
+        promptEval["Prompt comparison<br/>minimal vs structured vs chain-of-thought"]
+    end
+
+    rules -. tested by .-> rulesEval
+    lookup -. tested by .-> ragEval
+    risk -. tested by .-> riskEval
+    llmExtract -. tested by .-> promptEval
 ```
+
+The workflow is designed so the LLM handles messy language tasks, while exact billing-code lookup, benchmark comparison, flagging, and risk prediction stay structured and inspectable. The live app includes an embedding-mode selector: hash embeddings are the fast default, and sentence-transformer embeddings can be selected for the semantic retrieval path.
 
 ## Key Components
 
-- `app.py`: Gradio interface with analysis, chat, and dispute-letter tabs.
+- `app.py`: Gradio interface with analysis, embedding-mode selection, chat, dispute-letter tabs, and visible loading indicators during model calls.
 - `src/pdf_extract.py`: Text extraction from PDFs, images, and text files.
 - `src/code_extract.py`: OpenAI-compatible LLM extraction of structured billing data, schema normalization, and a regex fallback for clean text bills.
-- `src/rag.py`: ChromaDB index over a CMS-style Medicare fee schedule using deterministic local embeddings by default, with optional sentence-transformer embeddings for comparison.
+- `src/rag.py`: ChromaDB index over a CMS-style Medicare fee schedule using deterministic local embeddings by default, with optional sentence-transformer embeddings selectable in the app.
 - `src/analysis.py`: CPT/HCPCS-driven Medicare benchmark comparison plus rule-based overcharge, duplicate, high-acuity-code, and missing-rate checks.
 - `src/features.py`: Feature engineering for the trained bill-risk classifier, including ratio, flag-count, category, and ZIP-region features.
 - `src/risk_model.py`: Loads the trained scikit-learn classifier and predicts LOW/MEDIUM/HIGH bill risk.
@@ -61,7 +85,7 @@ The project uses CPT/HCPCS codes as the bridge between an uploaded bill and Medi
 4. The analysis layer compares the billed charge to the benchmark and flags potential overcharges when the charge is more than 2x the benchmark.
 5. Feature engineering converts the analysis into numeric model inputs such as bill-to-benchmark ratio, max line-item ratio, flag counts, procedure category counts, unmatched-code fraction, and a coarse ZIP-region multiplier.
 6. A trained random-forest classifier predicts whether the bill is `LOW_RISK`, `MEDIUM_RISK`, or `HIGH_RISK`.
-7. The UI reports pipeline status, including extraction method, matched codes, unmatched codes, risk model output, and warning messages.
+7. The UI reports pipeline status, including extraction method, selected embedding mode, matched codes, unmatched codes, risk model output, and warning messages.
 
 The current `data/cms_fee_schedule.csv` contains 9,926 CMS-style fee-schedule rows derived from CMS Physician Fee Schedule, Clinical Laboratory Fee Schedule, and anesthesia reference data. The demo and evaluation bills are synthetic; the project should not be described as evaluated on real patient bills.
 
@@ -80,11 +104,13 @@ python scripts/train_risk_model.py  # optional but recommended for risk scores
 python app.py
 ```
 
-Then open the Gradio URL and upload `data/sample_bill.txt` for a reliable demo.
+Then open the Gradio URL and upload `data/sample_bill.txt` for a reliable demo. Use hash embeddings for the fastest run; switch to semantic embeddings when you want to demonstrate the sentence-transformer retrieval option.
 
 ## Hosted Demo
 
 The app is deployed publicly on Hugging Face Spaces: [Medical Billing Assistant](https://huggingface.co/spaces/paulina-vvedenskaya/medical-billing-assistant).
+
+For a smooth live demo, upload `data/sample_bill.txt`, enter ZIP code `27708`, leave the embedding mode on hash for the first run, then optionally rerun with semantic embeddings to show the retrieval toggle.
 
 ## Evaluation
 
@@ -102,7 +128,7 @@ Current results from `eval/results.json`:
 - Precision: 1.000
 - Recall: 1.000
 - F1: 1.000
-- Average deterministic-check latency: about 15.67 ms per case
+- Average deterministic-check latency: about 11.78 ms per case
 - Index parity check: sampled Chroma lookups matched the source CSV fees
 
 This evaluation isolates the deterministic extraction-free analysis layer. The end-to-end app also depends on API availability, OCR quality, and the quality of LLM extraction/explanation.
@@ -135,6 +161,7 @@ Current retrieval comparison from `eval/rag_comparison_results.json`:
 - Hash embeddings: exact CPT/HCPCS lookup accuracy of 1.000, description recall@5 of 0.167, and index build time about 3.77 seconds
 - Sentence-transformer embeddings: exact CPT/HCPCS lookup accuracy of 1.000, description recall@5 of 0.250, and index build time about 24.75 seconds
 - Exact CPT/HCPCS lookup is constrained by metadata filters, so it is embedding-independent once the expected-fee fixture matches `data/cms_fee_schedule.csv`
+- The deployed app exposes both modes through the RAG embedding selector and reports the selected mode in Pipeline Status
 
 Current live prompt comparison from `eval/prompt_comparison_results.json`:
 
@@ -152,8 +179,8 @@ Current live prompt comparison from `eval/prompt_comparison_results.json`:
 | Feature engineering | `src/features.py` converts bill analyses into ratios, flag counts, CPT/HCPCS category features, unmatched-code features, and ZIP-region features. |
 | Prompt engineering with evaluation | `eval/prompt_comparison.py` and `eval/prompt_comparison_results.json` compare minimal, structured, and chain-of-thought extraction prompts. |
 | LLM API integration and multi-turn chat | `src/llm.py`, `src/code_extract.py`, `src/explain.py`, `src/dispute.py`, and `app.py` integrate OpenAI-compatible calls for extraction, explanation, chat, and dispute generation. |
-| Custom RAG pipeline | `src/rag.py` builds a Chroma index over CMS-style fee schedule rows and `eval/rag_comparison.py` compares hash and sentence-transformer embeddings. |
-| Web deployment and production considerations | The Hugging Face Space linked above runs the app publicly; `app.py` includes rate limiting, logging, and user-facing error handling. |
+| Custom RAG pipeline | `src/rag.py` builds a Chroma index over CMS-style fee schedule rows, `app.py` exposes hash vs. semantic embedding selection, and `eval/rag_comparison.py` compares both modes. |
+| Web deployment and production considerations | The Hugging Face Space linked above runs the app publicly; `app.py` includes rate limiting, logging, loading indicators, and user-facing error handling. |
 | Evaluation and error analysis | `eval/evaluate_rules.py`, `eval/error_analysis.py`, and result JSON files report precision/recall/F1, latency, index parity, misclassified examples, and edge-case behavior. |
 
 ## Video Links
@@ -167,7 +194,8 @@ Current live prompt comparison from `eval/prompt_comparison_results.json`:
 - OCR quality depends on local Tesseract/poppler installation and document quality.
 - LLM extraction can make mistakes, so the app validates the model output, includes a regex fallback for clean text bills, and should be treated as decision support rather than legal or financial advice.
 - The fee schedule is a project-formatted CMS-style benchmark, not a full clinical billing database or a guarantee of patient-specific fair pricing.
-- The retrieval embeddings are lightweight and local for reliable setup, not a large pretrained semantic embedding model.
+- The default hash embeddings are lightweight and local for reliable setup; semantic embeddings are optional because they add model-loading time and dependency weight.
+- Semantic embeddings are available in the app but can be slower on first use because the hosted Space may need to load or build the sentence-transformer index.
 - CPT code descriptions may be subject to AMA licensing restrictions, so this project should be treated as educational decision support rather than a redistributed official CPT database.
 - High-acuity-code flags are review signals, not proof of upcoding or fraud.
 - The trained risk model is weakly supervised on synthetic CMS-grounded examples; it is not clinically validated and should not be treated as a final billing decision.

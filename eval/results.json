@@ -1,8 +1,8 @@
 {
   "num_cases": 10,
   "num_passed": 10,
-  "latency_seconds_total": 0.1567,
-  "latency_ms_per_case": 15.67,
+  "latency_seconds_total": 0.1178,
+  "latency_ms_per_case": 11.78,
   "metrics": {
     "precision": 1.0,
     "recall": 1.0,

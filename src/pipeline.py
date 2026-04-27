@@ -18,7 +18,11 @@ from src.risk_model import predict_bill_risk
 logger = logging.getLogger(__name__)
 
 
-def analyze_bill(file_path: str, zip_code: str | None = None) -> dict:
+def analyze_bill(
+    file_path: str,
+    zip_code: str | None = None,
+    embedding_type: str | None = None,
+) -> dict:
     """Run the full analysis pipeline on a medical bill."""
     logger.info("Step 1: Extracting text from bill")
     try:
@@ -60,7 +64,7 @@ def analyze_bill(file_path: str, zip_code: str | None = None) -> dict:
         }
 
     logger.info("Step 3: Analyzing charges")
-    analysis = run_all_checks(line_items)
+    analysis = run_all_checks(line_items, embedding_type=embedding_type)
     analysis["patient_name"] = bill_data.get("patient_name")
     analysis["provider_name"] = bill_data.get("provider_name")
     analysis["extraction_method"] = bill_data.get("extraction_method", "unknown")

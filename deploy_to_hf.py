@@ -55,7 +55,6 @@ SKIP_PATTERNS = [
 ]
 
 SPACE_EXCLUDED_REQUIREMENTS = {
-    "sentence-transformers",
     "matplotlib",
 }
 

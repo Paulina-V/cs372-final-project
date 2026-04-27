@@ -35,13 +35,13 @@ Do not put real keys in `.env.example`; `.env` is ignored by git.
 
 ## 4. Install Optional System OCR Tools
 
-For image uploads and scanned PDFs, install Tesseract. On macOS with Homebrew:
+For image uploads and scanned PDFs, install Tesseract and Poppler. On macOS with Homebrew:
 
 ```bash
 brew install tesseract poppler
 ```
 
-Text PDFs and `.txt` demo bills do not require Tesseract.
+Text PDFs and `.txt` demo bills do not require Tesseract. Hugging Face Spaces installs these system packages from `packages.txt`.
 
 ## 5. Optional: Refresh CMS Fee Schedule Data
 
@@ -61,6 +61,8 @@ python scripts/build_index.py
 
 This creates a local `chroma_db/` directory. It is ignored by git because it is generated from `data/cms_fee_schedule.csv`.
 
+The app defaults to hash embeddings for fast, reliable exact CPT/HCPCS lookup. The Gradio UI also includes a `RAG Embedding Mode` selector for semantic sentence-transformer embeddings; the semantic index is built automatically on first use and may take longer than the hash index.
+
 ## 7. Run The App
 
 ```bash
@@ -79,6 +81,8 @@ Open the Gradio URL printed in the terminal. For the most reliable demo, upload:
 data/sample_bill.txt
 ```
 
+Use ZIP code `27708` and keep the RAG embedding mode on hash for the fastest demo. Switch to semantic embeddings only if you want to show the optional sentence-transformer retrieval path.
+
 ## 8. Run Evaluation
 
 ```bash
@@ -88,7 +92,7 @@ python eval/error_analysis.py
 python eval/rag_comparison.py
 ```
 
-These scripts rebuild or reuse local artifacts, evaluate synthetic bills through the production deterministic analysis path, check sampled index lookups against the CSV, train and evaluate the risk model, compare retrieval strategies, and write updated metrics to:
+These scripts rebuild or reuse local artifacts, evaluate synthetic bills through the production deterministic analysis path, check sampled index lookups against the CSV, train and evaluate the risk model, compare hash vs. semantic retrieval strategies, and write updated metrics to:
 
 ```text
 eval/results.json
@@ -124,9 +128,12 @@ python deploy_to_hf.py --space-id paulina-vvedenskaya/medical-billing-assistant
 
 In the Space settings, set `GRADIO_SERVER_NAME=0.0.0.0` as a variable and set `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_MODEL` as secrets/variables as appropriate for your OpenAI-compatible endpoint.
 
+The deployed Space uses `packages.txt` for system OCR dependencies and keeps `sentence-transformers` in `requirements.txt` so the semantic embedding toggle works online.
+
 ## Troubleshooting
 
 - If the app says `OPENAI_API_KEY is not set`, check that your real key is in `.env`, not `.env.example` or `.env.s`.
 - If Medicare rates are missing, run `python scripts/build_index.py`.
+- If semantic embeddings are slow on the first request, wait for the sentence-transformer model and Chroma index to finish loading/building, or use hash embeddings for the demo.
 - If image OCR fails, install Tesseract and poppler or use the text demo bill.
 - If package installation fails on Python 3.13, try Python 3.11 or 3.12 because some ML packages may lag behind the newest Python release.
