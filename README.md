@@ -186,7 +186,7 @@ Current live prompt comparison from `eval/prompt_comparison_results.json`:
 ## Video Links
 
 - Demo video: (https://drive.google.com/file/d/1r19WNUfrNj4eREVjfoDERWuuTVGEoMzk/view?usp=sharing)
-- Technical walkthrough: 
+- Technical walkthrough: https://drive.google.com/file/d/1JPjuICbXyl0ZjAGZjv7xADEReSqmN0qH/view?usp=sharing
 
 ## Limitations
 
