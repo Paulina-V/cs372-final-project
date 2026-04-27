@@ -185,8 +185,8 @@ Current live prompt comparison from `eval/prompt_comparison_results.json`:
 
 ## Video Links
 
-- Demo video: TODO after recording; use `VIDEO_SCRIPTS.md` for the suggested nontechnical walkthrough.
-- Technical walkthrough: TODO after recording; use `VIDEO_SCRIPTS.md` for the suggested code and ML explanation.
+- Demo video: (https://drive.google.com/file/d/1r19WNUfrNj4eREVjfoDERWuuTVGEoMzk/view?usp=sharing)
+- Technical walkthrough: 
 
 ## Limitations
 
