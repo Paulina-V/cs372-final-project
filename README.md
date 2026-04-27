@@ -202,4 +202,4 @@ Current live prompt comparison from `eval/prompt_comparison_results.json`:
 
 ## Individual Contributions
 
-Solo project. Paulina Vargas designed and implemented the project, including the Gradio app, bill extraction pipeline, Medicare-rate retrieval, anomaly checks, trained bill-risk classifier, LLM explanation/chat flow, dispute-letter generation, evaluation harness, deployment workflow, and documentation.
+Solo project. Paulina Vvedenskaya designed and implemented the project, including the Gradio app, bill extraction pipeline, Medicare-rate retrieval, anomaly checks, trained bill-risk classifier, LLM explanation/chat flow, dispute-letter generation, evaluation harness, deployment workflow, and documentation.
